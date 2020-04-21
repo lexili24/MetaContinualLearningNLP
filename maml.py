@@ -34,6 +34,7 @@ class Learner(nn.Module):
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
         self.model.train()
 
+
     def forward(self, batch_tasks, training = True):
         """
         batch = [(support TensorDataset, query TensorDataset),
@@ -50,8 +51,11 @@ class Learner(nn.Module):
         for task_id, task in enumerate(batch_tasks):
             support = task[0]
             query   = task[1]
-            wl_gradients = []
+            wl_params = []
             fast_model = deepcopy(self.model)
+            # Random Initialize W_ for classification
+            torch.nn.init.xavier_uniform_(fast_model.classifier.weight.data)
+            
             fast_model.to(self.device)
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
                                             batch_size=self.inner_batch_size)
@@ -105,6 +109,7 @@ class Learner(nn.Module):
             for i, params in enumerate(self.model.parameters()):
                 params = wl_parmas[i]  
             q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels = q_label_id)
+            
             if training:
                 for name, param in self.model.named_parameters():
                     if 'classifier' in name: # classifier layer

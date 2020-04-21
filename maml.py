@@ -101,9 +101,9 @@ class Learner(nn.Module):
             if training:
                 for i, params in enumerate(self.model.parameters()):
                     params.grad = wl_gradients[i]
-                for param not in self.model.bert.embeddings.parameters():
-                    param.requires_grad = False
-            
+                for name, param in model.named_parameters():
+                	if 'classifier' in name: # classifier layer
+		                param.requires_grad = False
                 q_loss = q_outputs[0]
                 q_loss.backward()
                 self.outer_optimizer.step()

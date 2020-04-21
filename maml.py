@@ -50,7 +50,7 @@ class Learner(nn.Module):
         for task_id, task in enumerate(batch_tasks):
             support = task[0]
             query   = task[1]
-            
+            wl_gradients = []
             fast_model = deepcopy(self.model)
             fast_model.to(self.device)
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
@@ -63,9 +63,13 @@ class Learner(nn.Module):
             # for param in fast_model.bert.embeddings.parameters():
             #     param.requires_grad = False
             ######## Another method to change the freezing layer
+
             for name, param in fast_model.named_parameters():
                 if 'classifier' not in name: # classifier layer
                     param.requires_grad = False
+                else:
+                    param.requires_grad = True
+
             
             print('----Task',task_id, '----')
             for i in range(0,num_inner_update_step):
@@ -101,9 +105,12 @@ class Learner(nn.Module):
             if training:
                 for i, params in enumerate(self.model.parameters()):
                     params.grad = wl_gradients[i]
-                for name, param in model.named_parameters():
-                	if 'classifier' in name: # classifier layer
-		                param.requires_grad = False
+                for name, param in self.model.named_parameters():
+                    if 'classifier' in name: # classifier layer
+                        param.requires_grad = False
+                    else:
+                        param.requires_grad = True
+
                 q_loss = q_outputs[0]
                 q_loss.backward()
                 self.outer_optimizer.step()
@@ -118,7 +125,7 @@ class Learner(nn.Module):
             
             acc = accuracy_score(pre_label_id,q_label_id)
             task_accs.append(acc)
-            
+            print('Query Acc: ', acc)
             del fast_model, inner_optimizer
             torch.cuda.empty_cache()
         

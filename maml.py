@@ -60,12 +60,12 @@ class Learner(nn.Module):
             
             fast_model.train()
             # Freeze the representation layers of the model to train the inner loop
-            for param in fast_model.bert.embeddings.parameters():
-                param.requires_grad = False
+            # for param in fast_model.bert.embeddings.parameters():
+            #     param.requires_grad = False
             ######## Another method to change the freezing layer
-            # for name, param in model.named_parameters():
-            #     if 'classifier' not in name: # classifier layer
-            #         param.requires_grad = False
+            for name, param in fast_model.named_parameters():
+                if 'classifier' not in name: # classifier layer
+                    param.requires_grad = False
             
             print('----Task',task_id, '----')
             for i in range(0,num_inner_update_step):
@@ -84,8 +84,8 @@ class Learner(nn.Module):
                     
                     all_loss.append(loss.item())
                 
-                if i % 4 == 0:
-                    print("Inner Loss: ", np.mean(all_loss))
+                #if i % 4 == 0:
+                print("Inner Loss: ", np.mean(all_loss))
 
             # W_l gradient
             fast_model.to(torch.device('cpu'))

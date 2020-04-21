@@ -94,38 +94,37 @@ class Learner(nn.Module):
             # W_l gradient
             fast_model.to(torch.device('cpu'))
             for i, params in enumerate(fast_model.parameters()):
-                wl_gradients.append(deepcopy(params.grad))
+                wl_parmas.append(deepcopy(params))
 
             print('S_Test')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-            q_outputs = fast_model(q_input_ids, q_attention_mask, q_segment_ids, labels = q_label_id)
             if training:
                 for i, params in enumerate(self.model.parameters()):
-                    params.grad = wl_gradients[i]
+                    params = wl_parmas[i]
                 for name, param in self.model.named_parameters():
                     if 'classifier' in name: # classifier layer
                         param.requires_grad = False
                     else:
                         param.requires_grad = True
-
+                
+                q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels = q_label_id)
                 q_loss = q_outputs[0]
                 q_loss.backward()
                 self.outer_optimizer.step()
                 self.outer_optimizer.zero_grad()
 
-            
-
-            q_logits = F.softmax(q_outputs[1],dim=1)
-            pre_label_id = torch.argmax(q_logits,dim=1)
-            pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-            q_label_id = q_label_id.detach().cpu().numpy().tolist()
-            
-            acc = accuracy_score(pre_label_id,q_label_id)
-            task_accs.append(acc)
-            print('Query Acc: ', acc)
+                q_logits = F.softmax(q_outputs[1],dim=1)
+                pre_label_id = torch.argmax(q_logits,dim=1)
+                pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+                q_label_id = q_label_id.detach().cpu().numpy().tolist()
+                
+                acc = accuracy_score(pre_label_id,q_label_id)
+                task_accs.append(acc)
+                print('Query Acc: ', acc)
+                
             del fast_model, inner_optimizer
             torch.cuda.empty_cache()
         

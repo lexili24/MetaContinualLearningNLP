@@ -98,7 +98,7 @@ class Learner(nn.Module):
             # W_l gradient
             fast_model.to(torch.device('cpu'))
             for i, params in enumerate(fast_model.parameters()):
-                wl_parmas.append(deepcopy(params))
+                wl_params.append(deepcopy(params))
 
             print('S_Test')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
@@ -107,7 +107,7 @@ class Learner(nn.Module):
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
             
             for i, params in enumerate(self.model.parameters()):
-                params = wl_parmas[i]  
+                params = wl_params[i]  
             q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels = q_label_id)
             
             if training:

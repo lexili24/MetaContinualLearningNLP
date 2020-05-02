@@ -106,14 +106,14 @@ def main():
 
             print('Step:', step, '\ttraining Acc:', acc)
 
-            if global_step % 10 == 0:
+            if global_step % 2 == 0:
                 random_seed(123)
                 print("\n-----------------Testing Mode-----------------\n")
                 db_test = create_batch_of_tasks(test, is_shuffle=False, batch_size=1)
                 acc_all_test = []
 
                 for test_batch in db_test:
-                    acc = learner(test_batch)
+                    acc = learner.finetune(test_batch)
                     acc_all_test.append(acc)
 
                 print('Step:', step, 'Test F1:', np.mean(acc_all_test))

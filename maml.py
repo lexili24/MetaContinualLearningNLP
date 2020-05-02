@@ -92,7 +92,6 @@ class Learner(nn.Module):
                 # if i % 4 == 0:
                 print("Inner Loss: ", np.mean(all_loss))
 
-
             print('----Training Outer Step-----')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
@@ -127,7 +126,6 @@ class Learner(nn.Module):
             gc.collect()
 
         return np.mean(task_accs)
-
 
     def finetune(self, batch_tasks):
         """
@@ -177,7 +175,6 @@ class Learner(nn.Module):
                 # if i % 4 == 0:
                 print("Inner Loss: ", np.mean(all_loss))
 
-
             print('----Testing Outer Step-----')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
@@ -200,5 +197,26 @@ class Learner(nn.Module):
             torch.cuda.empty_cache()
 
             gc.collect()
+
+        # Test forgetting
+        print('----Testing Forgetting-----')
+        for task_id, task in enumerate(batch_tasks):
+            query = task[1]
+            self.model.to(self.device)
+            query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+            query_batch = iter(query_dataloader).next()
+            query_batch = tuple(t.to(self.device) for t in query_batch)
+            q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+
+            q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
+
+            q_loss = q_outputs[0]
+            q_logits = F.softmax(q_outputs[1], dim=1)
+            pre_label_id = torch.argmax(q_logits, dim=1)
+            pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+            q_label_id = q_label_id.detach().cpu().numpy().tolist()
+
+            acc = accuracy_score(pre_label_id, q_label_id)
+            print("accuracy on task " + task_id + " after finalizing " + acc)
 
         return np.mean(task_accs)

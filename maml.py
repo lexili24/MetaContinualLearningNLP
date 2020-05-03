@@ -217,6 +217,6 @@ class Learner(nn.Module):
             q_label_id = q_label_id.detach().cpu().numpy().tolist()
 
             acc = accuracy_score(pre_label_id, q_label_id)
-            print("accuracy on task " + task_id + " after finalizing " + acc)
+            print("accuracy on task " + str(task_id) + " after finalizing " + str(acc))
 
         return np.mean(task_accs)

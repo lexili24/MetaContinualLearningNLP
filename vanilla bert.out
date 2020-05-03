@@ -1,0 +1,1877 @@
+Solving environment: ...working... done
+
+
+==> WARNING: A newer version of conda exists. <==
+  current version: 4.5.11
+  latest version: 4.8.3
+
+Please update conda by running
+
+    $ conda update -n base -c defaults conda
+
+
+
+# All requested packages already installed.
+
+running bert on classification
+21555 300
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.6557326401982989
+----Training Inner Step  1 -----
+Inner Loss:  0.5508894962923867
+----Training Inner Step  2 -----
+Inner Loss:  0.26762787784848896
+----Training Inner Step  3 -----
+Inner Loss:  0.07688061680112566
+----Training Inner Step  4 -----
+Inner Loss:  0.02052477773811136
+----Training Inner Step  5 -----
+Inner Loss:  0.008145609072276525
+----Training Inner Step  6 -----
+Inner Loss:  0.004707503864275557
+----Training Inner Step  7 -----
+Inner Loss:  0.0032228543755731414
+----Training Inner Step  8 -----
+Inner Loss:  0.0024172379967889617
+----Training Inner Step  9 -----
+Inner Loss:  0.0019252867870298879
+S_Test
+Query Acc:  0.85
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.534147991665772
+----Training Inner Step  1 -----
+Inner Loss:  0.1592506282031536
+----Training Inner Step  2 -----
+Inner Loss:  0.04774750928793635
+----Training Inner Step  3 -----
+Inner Loss:  0.023089158880923475
+----Training Inner Step  4 -----
+Inner Loss:  0.010693022848239966
+----Training Inner Step  5 -----
+Inner Loss:  0.006468886509537697
+----Training Inner Step  6 -----
+Inner Loss:  0.004621636288772736
+----Training Inner Step  7 -----
+Inner Loss:  0.0034359381534159184
+----Training Inner Step  8 -----
+Inner Loss:  0.0027749439302299705
+----Training Inner Step  9 -----
+Inner Loss:  0.002388610704136746
+S_Test
+Query Acc:  0.9
+Step: 0 	training Acc: 0.875
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.47550744829433306
+----Testing Inner Step  1 -----
+Inner Loss:  0.14222280894007003
+----Testing Inner Step  2 -----
+Inner Loss:  0.04718968245599951
+----Testing Inner Step  3 -----
+Inner Loss:  0.009521233250520058
+----Testing Inner Step  4 -----
+Inner Loss:  0.0054020257001476625
+----Testing Inner Step  5 -----
+Inner Loss:  0.003859840765861528
+----Testing Inner Step  6 -----
+Inner Loss:  0.00305474509618112
+----Testing Inner Step  7 -----
+Inner Loss:  0.0023383057809301783
+----Testing Inner Step  8 -----
+Inner Loss:  0.0019247957804639424
+----Testing Inner Step  9 -----
+Inner Loss:  0.0015482930965455516
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.47787140043718473
+----Testing Inner Step  1 -----
+Inner Loss:  0.1916629107935088
+----Testing Inner Step  2 -----
+Inner Loss:  0.11546556811247553
+----Testing Inner Step  3 -----
+Inner Loss:  0.06091444779719625
+----Testing Inner Step  4 -----
+Inner Loss:  0.0452941046761615
+----Testing Inner Step  5 -----
+Inner Loss:  0.02042058136846338
+----Testing Inner Step  6 -----
+Inner Loss:  0.007648378610610962
+----Testing Inner Step  7 -----
+Inner Loss:  0.004605553711631468
+----Testing Inner Step  8 -----
+Inner Loss:  0.002942800538481346
+----Testing Inner Step  9 -----
+Inner Loss:  0.0023278991325891446
+----Testing Outer Step-----
+Outer Acc:  0.85
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.4509634444756167
+----Testing Inner Step  1 -----
+Inner Loss:  0.09780431272728103
+----Testing Inner Step  2 -----
+Inner Loss:  0.06292088409619671
+----Testing Inner Step  3 -----
+Inner Loss:  0.021469806587057456
+----Testing Inner Step  4 -----
+Inner Loss:  0.007844543882778712
+----Testing Inner Step  5 -----
+Inner Loss:  0.005089666195479887
+----Testing Inner Step  6 -----
+Inner Loss:  0.003414141313572015
+----Testing Inner Step  7 -----
+Inner Loss:  0.0026450796119336572
+----Testing Inner Step  8 -----
+Inner Loss:  0.002005791391379067
+----Testing Inner Step  9 -----
+Inner Loss:  0.0017528831792463148
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 0.8
+accuracy on task 2 after finalizing: 1.0
+Step: 0 Test F1: 0.9166666666666666
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.40462195091614767
+----Training Inner Step  1 -----
+Inner Loss:  0.1927751371903079
+----Training Inner Step  2 -----
+Inner Loss:  0.06716556740658623
+----Training Inner Step  3 -----
+Inner Loss:  0.023640598636120558
+----Training Inner Step  4 -----
+Inner Loss:  0.009996940647917134
+----Training Inner Step  5 -----
+Inner Loss:  0.007207596474992377
+----Training Inner Step  6 -----
+Inner Loss:  0.004303422723231571
+----Training Inner Step  7 -----
+Inner Loss:  0.0028154565786410657
+----Training Inner Step  8 -----
+Inner Loss:  0.0020829950143317027
+----Training Inner Step  9 -----
+Inner Loss:  0.0016138922489647353
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.3479574534576386
+----Training Inner Step  1 -----
+Inner Loss:  0.19227926805615425
+----Training Inner Step  2 -----
+Inner Loss:  0.06369805708527565
+----Training Inner Step  3 -----
+Inner Loss:  0.0399811202660203
+----Training Inner Step  4 -----
+Inner Loss:  0.011865452896537525
+----Training Inner Step  5 -----
+Inner Loss:  0.004317526323055583
+----Training Inner Step  6 -----
+Inner Loss:  0.0028936649905517697
+----Training Inner Step  7 -----
+Inner Loss:  0.0016562030484367693
+----Training Inner Step  8 -----
+Inner Loss:  0.001314241231219577
+----Training Inner Step  9 -----
+Inner Loss:  0.0010743694646017893
+S_Test
+Query Acc:  0.9
+Step: 1 	training Acc: 0.925
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.3666946561341839
+----Training Inner Step  1 -----
+Inner Loss:  0.09510869865438767
+----Training Inner Step  2 -----
+Inner Loss:  0.069409773551992
+----Training Inner Step  3 -----
+Inner Loss:  0.04170607429529939
+----Training Inner Step  4 -----
+Inner Loss:  0.029238608000533923
+----Training Inner Step  5 -----
+Inner Loss:  0.016645982063242366
+----Training Inner Step  6 -----
+Inner Loss:  0.010297617908301098
+----Training Inner Step  7 -----
+Inner Loss:  0.004522764157237751
+----Training Inner Step  8 -----
+Inner Loss:  0.0036471649738294737
+----Training Inner Step  9 -----
+Inner Loss:  0.0024321476563013028
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.403376469122512
+----Training Inner Step  1 -----
+Inner Loss:  0.1483461931347847
+----Training Inner Step  2 -----
+Inner Loss:  0.05644330994359085
+----Training Inner Step  3 -----
+Inner Loss:  0.02732314302452973
+----Training Inner Step  4 -----
+Inner Loss:  0.007266159568514142
+----Training Inner Step  5 -----
+Inner Loss:  0.0033586791583469938
+----Training Inner Step  6 -----
+Inner Loss:  0.00211405468040279
+----Training Inner Step  7 -----
+Inner Loss:  0.0016063479872952615
+----Training Inner Step  8 -----
+Inner Loss:  0.0013283448476743484
+----Training Inner Step  9 -----
+Inner Loss:  0.0010392694135329553
+S_Test
+Query Acc:  0.75
+Step: 2 	training Acc: 0.85
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.023680623836948404
+----Testing Inner Step  1 -----
+Inner Loss:  0.0305214581187881
+----Testing Inner Step  2 -----
+Inner Loss:  0.0008924887307719993
+----Testing Inner Step  3 -----
+Inner Loss:  0.0005984873901720025
+----Testing Inner Step  4 -----
+Inner Loss:  0.0004262157848903111
+----Testing Inner Step  5 -----
+Inner Loss:  0.00028313057971120415
+----Testing Inner Step  6 -----
+Inner Loss:  0.0002675439609447494
+----Testing Inner Step  7 -----
+Inner Loss:  0.0001883265524936308
+----Testing Inner Step  8 -----
+Inner Loss:  0.00016503390673148845
+----Testing Inner Step  9 -----
+Inner Loss:  0.00014207760562255447
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.044922452620604805
+----Testing Inner Step  1 -----
+Inner Loss:  0.01210857430955262
+----Testing Inner Step  2 -----
+Inner Loss:  0.0010791108943521976
+----Testing Inner Step  3 -----
+Inner Loss:  9.71498926186801e-05
+----Testing Inner Step  4 -----
+Inner Loss:  8.322227534206052e-05
+----Testing Inner Step  5 -----
+Inner Loss:  6.724539135965253e-05
+----Testing Inner Step  6 -----
+Inner Loss:  6.589435465035162e-05
+----Testing Inner Step  7 -----
+Inner Loss:  6.433044109144248e-05
+----Testing Inner Step  8 -----
+Inner Loss:  5.549192480559993e-05
+----Testing Inner Step  9 -----
+Inner Loss:  5.7501452309744696e-05
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0014708410682422774
+----Testing Inner Step  1 -----
+Inner Loss:  0.021679481580057263
+----Testing Inner Step  2 -----
+Inner Loss:  1.8537044265290854e-05
+----Testing Inner Step  3 -----
+Inner Loss:  0.01627619421534681
+----Testing Inner Step  4 -----
+Inner Loss:  9.71300266558371e-05
+----Testing Inner Step  5 -----
+Inner Loss:  0.1291635859800278
+----Testing Inner Step  6 -----
+Inner Loss:  0.00010816823903171877
+----Testing Inner Step  7 -----
+Inner Loss:  0.0003247530725535138
+----Testing Inner Step  8 -----
+Inner Loss:  0.0003364667999059228
+----Testing Inner Step  9 -----
+Inner Loss:  0.0002878123798706968
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 1.0
+accuracy on task 1 after finalizing: 0.95
+accuracy on task 2 after finalizing: 1.0
+Step: 2 Test F1: 0.9666666666666667
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.8631339428081576
+----Training Inner Step  1 -----
+Inner Loss:  0.3249297221856458
+----Training Inner Step  2 -----
+Inner Loss:  0.1807203729237829
+----Training Inner Step  3 -----
+Inner Loss:  0.07921421421425683
+----Training Inner Step  4 -----
+Inner Loss:  0.038994922169617245
+----Training Inner Step  5 -----
+Inner Loss:  0.013942044494407517
+----Training Inner Step  6 -----
+Inner Loss:  0.009729122876056604
+----Training Inner Step  7 -----
+Inner Loss:  0.00534008230481829
+----Training Inner Step  8 -----
+Inner Loss:  0.0033278649539819787
+----Training Inner Step  9 -----
+Inner Loss:  0.0027677856851369143
+S_Test
+Query Acc:  0.9
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4851538206317595
+----Training Inner Step  1 -----
+Inner Loss:  0.13103896352861608
+----Training Inner Step  2 -----
+Inner Loss:  0.06806983213339533
+----Training Inner Step  3 -----
+Inner Loss:  0.057912818023136685
+----Training Inner Step  4 -----
+Inner Loss:  0.049256693704852035
+----Training Inner Step  5 -----
+Inner Loss:  0.04137213820857661
+----Training Inner Step  6 -----
+Inner Loss:  0.01843632012605667
+----Training Inner Step  7 -----
+Inner Loss:  0.005898082462538566
+----Training Inner Step  8 -----
+Inner Loss:  0.004324732747461114
+----Training Inner Step  9 -----
+Inner Loss:  0.002799794776365161
+S_Test
+Query Acc:  0.95
+Step: 3 	training Acc: 0.925
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5699263995380274
+----Training Inner Step  1 -----
+Inner Loss:  0.3430002140147345
+----Training Inner Step  2 -----
+Inner Loss:  0.08202368553195681
+----Training Inner Step  3 -----
+Inner Loss:  0.06696522448744092
+----Training Inner Step  4 -----
+Inner Loss:  0.02090830821543932
+----Training Inner Step  5 -----
+Inner Loss:  0.010837299483163016
+----Training Inner Step  6 -----
+Inner Loss:  0.005272520439965385
+----Training Inner Step  7 -----
+Inner Loss:  0.00335009181539395
+----Training Inner Step  8 -----
+Inner Loss:  0.002296989900059998
+----Training Inner Step  9 -----
+Inner Loss:  0.0017749411719185965
+S_Test
+Query Acc:  0.75
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.7361852384970656
+----Training Inner Step  1 -----
+Inner Loss:  0.2549966887703964
+----Training Inner Step  2 -----
+Inner Loss:  0.17707064428499766
+----Training Inner Step  3 -----
+Inner Loss:  0.14391440419214113
+----Training Inner Step  4 -----
+Inner Loss:  0.12159169731395585
+----Training Inner Step  5 -----
+Inner Loss:  0.10821661273283618
+----Training Inner Step  6 -----
+Inner Loss:  0.09608134095157896
+----Training Inner Step  7 -----
+Inner Loss:  0.077223414555192
+----Training Inner Step  8 -----
+Inner Loss:  0.056829243898391724
+----Training Inner Step  9 -----
+Inner Loss:  0.0724123502150178
+S_Test
+Query Acc:  0.95
+Step: 4 	training Acc: 0.85
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.05130627052858472
+----Testing Inner Step  1 -----
+Inner Loss:  0.015858211521325365
+----Testing Inner Step  2 -----
+Inner Loss:  0.002229696256108582
+----Testing Inner Step  3 -----
+Inner Loss:  0.0011915351413855596
+----Testing Inner Step  4 -----
+Inner Loss:  0.0009585406348508384
+----Testing Inner Step  5 -----
+Inner Loss:  0.0003875508181019021
+----Testing Inner Step  6 -----
+Inner Loss:  0.0002694129943847656
+----Testing Inner Step  7 -----
+Inner Loss:  0.00019767170929948667
+----Testing Inner Step  8 -----
+Inner Loss:  0.00014933233926837732
+----Testing Inner Step  9 -----
+Inner Loss:  0.0001138732539922265
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.09362349196869348
+----Testing Inner Step  1 -----
+Inner Loss:  0.007987293996848166
+----Testing Inner Step  2 -----
+Inner Loss:  0.0014653816386791213
+----Testing Inner Step  3 -----
+Inner Loss:  0.000738502962381712
+----Testing Inner Step  4 -----
+Inner Loss:  0.0006797129171900451
+----Testing Inner Step  5 -----
+Inner Loss:  0.0002754472557821178
+----Testing Inner Step  6 -----
+Inner Loss:  0.00023108578794303218
+----Testing Inner Step  7 -----
+Inner Loss:  0.00021004392432847193
+----Testing Inner Step  8 -----
+Inner Loss:  0.00010836408286455221
+----Testing Inner Step  9 -----
+Inner Loss:  9.938081140197548e-05
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.07552684774730421
+----Testing Inner Step  1 -----
+Inner Loss:  0.11895685775172231
+----Testing Inner Step  2 -----
+Inner Loss:  0.0005571274544178907
+----Testing Inner Step  3 -----
+Inner Loss:  0.000715284121854763
+----Testing Inner Step  4 -----
+Inner Loss:  0.0007787786848244391
+----Testing Inner Step  5 -----
+Inner Loss:  0.0008996994667021292
+----Testing Inner Step  6 -----
+Inner Loss:  0.0006278057906976235
+----Testing Inner Step  7 -----
+Inner Loss:  0.0005395227926783264
+----Testing Inner Step  8 -----
+Inner Loss:  0.00045404263489347486
+----Testing Inner Step  9 -----
+Inner Loss:  0.00032422514466036646
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 0.9
+accuracy on task 2 after finalizing: 1.0
+Step: 4 Test F1: 0.9666666666666667
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.637736263019698
+----Training Inner Step  1 -----
+Inner Loss:  0.11799474379846028
+----Training Inner Step  2 -----
+Inner Loss:  0.10164684403155531
+----Training Inner Step  3 -----
+Inner Loss:  0.04902046772518328
+----Training Inner Step  4 -----
+Inner Loss:  0.016261505761316845
+----Training Inner Step  5 -----
+Inner Loss:  0.00823701242916286
+----Training Inner Step  6 -----
+Inner Loss:  0.005510963948576578
+----Training Inner Step  7 -----
+Inner Loss:  0.0037209292640909553
+----Training Inner Step  8 -----
+Inner Loss:  0.0020938061477084246
+----Training Inner Step  9 -----
+Inner Loss:  0.0025104042974167635
+S_Test
+Query Acc:  0.9
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5122148463768619
+----Training Inner Step  1 -----
+Inner Loss:  0.12597339853112186
+----Training Inner Step  2 -----
+Inner Loss:  0.0628601127703275
+----Training Inner Step  3 -----
+Inner Loss:  0.045906327930944305
+----Training Inner Step  4 -----
+Inner Loss:  0.026849490324301378
+----Training Inner Step  5 -----
+Inner Loss:  0.009604651148297958
+----Training Inner Step  6 -----
+Inner Loss:  0.005001464027113148
+----Training Inner Step  7 -----
+Inner Loss:  0.003786298512880291
+----Training Inner Step  8 -----
+Inner Loss:  0.002844134944358042
+----Training Inner Step  9 -----
+Inner Loss:  0.00205604376138321
+S_Test
+Query Acc:  0.8
+Step: 5 	training Acc: 0.8500000000000001
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5992272863430637
+----Training Inner Step  1 -----
+Inner Loss:  0.0899474344083241
+----Training Inner Step  2 -----
+Inner Loss:  0.044263069917048724
+----Training Inner Step  3 -----
+Inner Loss:  0.02096616955740111
+----Training Inner Step  4 -----
+Inner Loss:  0.012383015560252326
+----Training Inner Step  5 -----
+Inner Loss:  0.006744414567947388
+----Training Inner Step  6 -----
+Inner Loss:  0.0043838889604168275
+----Training Inner Step  7 -----
+Inner Loss:  0.003336753130757383
+----Training Inner Step  8 -----
+Inner Loss:  0.0025450956475521836
+----Training Inner Step  9 -----
+Inner Loss:  0.0018350439578560846
+S_Test
+Query Acc:  0.9
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.3367983102798462
+----Training Inner Step  1 -----
+Inner Loss:  0.11464529511119638
+----Training Inner Step  2 -----
+Inner Loss:  0.05109315032937697
+----Training Inner Step  3 -----
+Inner Loss:  0.020045628105955466
+----Training Inner Step  4 -----
+Inner Loss:  0.010291239180202996
+----Training Inner Step  5 -----
+Inner Loss:  0.0037121077434026767
+----Training Inner Step  6 -----
+Inner Loss:  0.002439181004384799
+----Training Inner Step  7 -----
+Inner Loss:  0.0019424117802243149
+----Training Inner Step  8 -----
+Inner Loss:  0.0013571126037277281
+----Training Inner Step  9 -----
+Inner Loss:  0.0010221628887977982
+S_Test
+Query Acc:  1.0
+Step: 6 	training Acc: 0.95
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0006038007309793361
+----Testing Inner Step  1 -----
+Inner Loss:  0.00010676611002833982
+----Testing Inner Step  2 -----
+Inner Loss:  4.395984485329661e-05
+----Testing Inner Step  3 -----
+Inner Loss:  2.703496388026646e-05
+----Testing Inner Step  4 -----
+Inner Loss:  2.0339375363879037e-05
+----Testing Inner Step  5 -----
+Inner Loss:  1.610176890868128e-05
+----Testing Inner Step  6 -----
+Inner Loss:  1.3635272028165804e-05
+----Testing Inner Step  7 -----
+Inner Loss:  1.2054329740099742e-05
+----Testing Inner Step  8 -----
+Inner Loss:  1.0921841619295134e-05
+----Testing Inner Step  9 -----
+Inner Loss:  9.508360043193015e-06
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.05159252030495866
+----Testing Inner Step  1 -----
+Inner Loss:  4.42663822468603e-05
+----Testing Inner Step  2 -----
+Inner Loss:  2.2002628741444952e-05
+----Testing Inner Step  3 -----
+Inner Loss:  0.0022470227283650146
+----Testing Inner Step  4 -----
+Inner Loss:  0.0008062096090465534
+----Testing Inner Step  5 -----
+Inner Loss:  1.3388338369882799e-05
+----Testing Inner Step  6 -----
+Inner Loss:  0.03642343907124866
+----Testing Inner Step  7 -----
+Inner Loss:  0.028821569113331082
+----Testing Inner Step  8 -----
+Inner Loss:  6.0986906256792804e-05
+----Testing Inner Step  9 -----
+Inner Loss:  0.0024599894170803183
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  1.3453619690803212e-05
+----Testing Inner Step  1 -----
+Inner Loss:  5.424022609596639e-06
+----Testing Inner Step  2 -----
+Inner Loss:  2.7730351510919197e-06
+----Testing Inner Step  3 -----
+Inner Loss:  1.7115047999790737e-06
+----Testing Inner Step  4 -----
+Inner Loss:  1.2062844721835323e-06
+----Testing Inner Step  5 -----
+Inner Loss:  9.508359945747153e-07
+----Testing Inner Step  6 -----
+Inner Loss:  7.010641525084793e-07
+----Testing Inner Step  7 -----
+Inner Loss:  6.187529818037416e-07
+----Testing Inner Step  8 -----
+Inner Loss:  5.307651674359346e-07
+----Testing Inner Step  9 -----
+Inner Loss:  5.250885400138421e-07
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 1.0
+accuracy on task 1 after finalizing: 0.95
+accuracy on task 2 after finalizing: 0.95
+Step: 6 Test F1: 0.9666666666666667
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.6446393774378895
+----Training Inner Step  1 -----
+Inner Loss:  0.3119727546540422
+----Training Inner Step  2 -----
+Inner Loss:  0.1983097309171821
+----Training Inner Step  3 -----
+Inner Loss:  0.17768465335081732
+----Training Inner Step  4 -----
+Inner Loss:  0.1340071963412421
+----Training Inner Step  5 -----
+Inner Loss:  0.09333996208650726
+----Training Inner Step  6 -----
+Inner Loss:  0.0991481114178896
+----Training Inner Step  7 -----
+Inner Loss:  0.09639453661761113
+----Training Inner Step  8 -----
+Inner Loss:  0.08671623029346977
+----Training Inner Step  9 -----
+Inner Loss:  0.07256620909486498
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4200641619307654
+----Training Inner Step  1 -----
+Inner Loss:  0.19468045926519803
+----Training Inner Step  2 -----
+Inner Loss:  0.1462551871580737
+----Training Inner Step  3 -----
+Inner Loss:  0.13985973170825414
+----Training Inner Step  4 -----
+Inner Loss:  0.09699367111482259
+----Training Inner Step  5 -----
+Inner Loss:  0.07391871698200703
+----Training Inner Step  6 -----
+Inner Loss:  0.05663660153680082
+----Training Inner Step  7 -----
+Inner Loss:  0.01763069479992347
+----Training Inner Step  8 -----
+Inner Loss:  0.009700976611514176
+----Training Inner Step  9 -----
+Inner Loss:  0.003447864703567965
+S_Test
+Query Acc:  0.95
+Step: 7 	training Acc: 0.95
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.595626740217475
+----Training Inner Step  1 -----
+Inner Loss:  0.2243308092334441
+----Training Inner Step  2 -----
+Inner Loss:  0.15296045584338053
+----Training Inner Step  3 -----
+Inner Loss:  0.10731803838695798
+----Training Inner Step  4 -----
+Inner Loss:  0.11610183518912111
+----Training Inner Step  5 -----
+Inner Loss:  0.09438749229801553
+----Training Inner Step  6 -----
+Inner Loss:  0.10282014935676541
+----Training Inner Step  7 -----
+Inner Loss:  0.07751315938574928
+----Training Inner Step  8 -----
+Inner Loss:  0.054389278670506816
+----Training Inner Step  9 -----
+Inner Loss:  0.06955005734094552
+S_Test
+Query Acc:  0.85
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.30727326444217135
+----Training Inner Step  1 -----
+Inner Loss:  0.35215140666280476
+----Training Inner Step  2 -----
+Inner Loss:  0.1594458743929863
+----Training Inner Step  3 -----
+Inner Loss:  0.17873720532017096
+----Training Inner Step  4 -----
+Inner Loss:  0.10782000156385559
+----Training Inner Step  5 -----
+Inner Loss:  0.0972334018775395
+----Training Inner Step  6 -----
+Inner Loss:  0.0691921573930553
+----Training Inner Step  7 -----
+Inner Loss:  0.09239261224865913
+----Training Inner Step  8 -----
+Inner Loss:  0.06301059181402836
+----Training Inner Step  9 -----
+Inner Loss:  0.06540691573172808
+S_Test
+Query Acc:  0.85
+Step: 8 	training Acc: 0.85
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.005163529039626675
+----Testing Inner Step  1 -----
+Inner Loss:  0.0007836974733176508
+----Testing Inner Step  2 -----
+Inner Loss:  0.00027557781556554673
+----Testing Inner Step  3 -----
+Inner Loss:  6.499744475669493e-05
+----Testing Inner Step  4 -----
+Inner Loss:  1.9286359929537866e-05
+----Testing Inner Step  5 -----
+Inner Loss:  7.615202970815257e-06
+----Testing Inner Step  6 -----
+Inner Loss:  6.539480961821807e-06
+----Testing Inner Step  7 -----
+Inner Loss:  4.535629614110803e-06
+----Testing Inner Step  8 -----
+Inner Loss:  4.152456865215624e-06
+----Testing Inner Step  9 -----
+Inner Loss:  3.843080451458393e-06
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.14098886933477064
+----Testing Inner Step  1 -----
+Inner Loss:  0.0014821503926733775
+----Testing Inner Step  2 -----
+Inner Loss:  0.0001122241945787599
+----Testing Inner Step  3 -----
+Inner Loss:  5.1120916915741486e-05
+----Testing Inner Step  4 -----
+Inner Loss:  4.082918115143132e-05
+----Testing Inner Step  5 -----
+Inner Loss:  3.6191372341168714e-05
+----Testing Inner Step  6 -----
+Inner Loss:  3.003506416072404e-05
+----Testing Inner Step  7 -----
+Inner Loss:  2.962634659654993e-05
+----Testing Inner Step  8 -----
+Inner Loss:  2.305280642238878e-05
+----Testing Inner Step  9 -----
+Inner Loss:  2.0929745265415738e-05
+----Testing Outer Step-----
+Outer Acc:  0.85
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  1.0022095141591438e-05
+----Testing Inner Step  1 -----
+Inner Loss:  3.4003030577878235e-06
+----Testing Inner Step  2 -----
+Inner Loss:  1.705828172556981e-06
+----Testing Inner Step  3 -----
+Inner Loss:  9.621892656598772e-07
+----Testing Inner Step  4 -----
+Inner Loss:  6.244296092258342e-07
+----Testing Inner Step  5 -----
+Inner Loss:  5.591483451488395e-07
+----Testing Inner Step  6 -----
+Inner Loss:  4.768371622633692e-07
+----Testing Inner Step  7 -----
+Inner Loss:  4.512923145024875e-07
+----Testing Inner Step  8 -----
+Inner Loss:  3.8317271641322546e-07
+----Testing Inner Step  9 -----
+Inner Loss:  3.2924470109004946e-07
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.9
+accuracy on task 1 after finalizing: 0.85
+accuracy on task 2 after finalizing: 1.0
+Step: 8 Test F1: 0.9500000000000001
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  1.632737659272692
+----Training Inner Step  1 -----
+Inner Loss:  0.6363571807742119
+----Training Inner Step  2 -----
+Inner Loss:  0.19155731930264405
+----Training Inner Step  3 -----
+Inner Loss:  0.1550224678856986
+----Training Inner Step  4 -----
+Inner Loss:  0.1439918614923954
+----Training Inner Step  5 -----
+Inner Loss:  0.08412647234009844
+----Training Inner Step  6 -----
+Inner Loss:  0.06465712123151336
+----Training Inner Step  7 -----
+Inner Loss:  0.049635374053780525
+----Training Inner Step  8 -----
+Inner Loss:  0.04017171150605593
+----Training Inner Step  9 -----
+Inner Loss:  0.030908739127750908
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4038966638701303
+----Training Inner Step  1 -----
+Inner Loss:  0.21840421642575944
+----Training Inner Step  2 -----
+Inner Loss:  0.1650713517197541
+----Training Inner Step  3 -----
+Inner Loss:  0.10342405802969422
+----Training Inner Step  4 -----
+Inner Loss:  0.0797797744827611
+----Training Inner Step  5 -----
+Inner Loss:  0.06127974736903395
+----Training Inner Step  6 -----
+Inner Loss:  0.05904105438717774
+----Training Inner Step  7 -----
+Inner Loss:  0.0812376522725182
+----Training Inner Step  8 -----
+Inner Loss:  0.044389272042151005
+----Training Inner Step  9 -----
+Inner Loss:  0.040629993725035875
+S_Test
+Query Acc:  0.75
+Step: 9 	training Acc: 0.85
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.37473796414477484
+----Training Inner Step  1 -----
+Inner Loss:  0.2015683902427554
+----Training Inner Step  2 -----
+Inner Loss:  0.11628440248646907
+----Training Inner Step  3 -----
+Inner Loss:  0.07742526994219848
+----Training Inner Step  4 -----
+Inner Loss:  0.06569199397095613
+----Training Inner Step  5 -----
+Inner Loss:  0.06056997459381819
+----Training Inner Step  6 -----
+Inner Loss:  0.060418459719845226
+----Training Inner Step  7 -----
+Inner Loss:  0.04715229118508952
+----Training Inner Step  8 -----
+Inner Loss:  0.0264009001132633
+----Training Inner Step  9 -----
+Inner Loss:  0.0036350006703287363
+S_Test
+Query Acc:  1.0
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.35586105905739324
+----Training Inner Step  1 -----
+Inner Loss:  0.07630272821656295
+----Training Inner Step  2 -----
+Inner Loss:  0.08699783523167882
+----Training Inner Step  3 -----
+Inner Loss:  0.07089424346174512
+----Training Inner Step  4 -----
+Inner Loss:  0.01654621439852885
+----Training Inner Step  5 -----
+Inner Loss:  0.0052430033683776855
+----Training Inner Step  6 -----
+Inner Loss:  0.0027784932338233504
+----Training Inner Step  7 -----
+Inner Loss:  0.0020566469257963555
+----Training Inner Step  8 -----
+Inner Loss:  0.0015450588128130352
+----Training Inner Step  9 -----
+Inner Loss:  0.00162487370627267
+S_Test
+Query Acc:  0.9
+Step: 10 	training Acc: 0.95
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.000537229427469096
+----Testing Inner Step  1 -----
+Inner Loss:  8.52715399690039e-05
+----Testing Inner Step  2 -----
+Inner Loss:  2.4100144660873673e-05
+----Testing Inner Step  3 -----
+Inner Loss:  5.815710307745446e-06
+----Testing Inner Step  4 -----
+Inner Loss:  2.3018746040699104e-06
+----Testing Inner Step  5 -----
+Inner Loss:  1.4475413568756527e-06
+----Testing Inner Step  6 -----
+Inner Loss:  1.2971105759009203e-06
+----Testing Inner Step  7 -----
+Inner Loss:  1.2204760651002289e-06
+----Testing Inner Step  8 -----
+Inner Loss:  1.1154583278637022e-06
+----Testing Inner Step  9 -----
+Inner Loss:  1.004764003807525e-06
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  8.798780949551396e-07
+----Testing Inner Step  1 -----
+Inner Loss:  0.001621703351182597
+----Testing Inner Step  2 -----
+Inner Loss:  0.239823589700133
+----Testing Inner Step  3 -----
+Inner Loss:  9.763808585765737e-07
+----Testing Inner Step  4 -----
+Inner Loss:  0.0022789083769469342
+----Testing Inner Step  5 -----
+Inner Loss:  1.3933295511898386e-05
+----Testing Inner Step  6 -----
+Inner Loss:  3.092345748102941e-05
+----Testing Inner Step  7 -----
+Inner Loss:  1.2289910111056607e-05
+----Testing Inner Step  8 -----
+Inner Loss:  5.418346186810855e-05
+----Testing Inner Step  9 -----
+Inner Loss:  1.2431825845331851e-05
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.00042329799566687143
+----Testing Inner Step  1 -----
+Inner Loss:  0.16190459756618175
+----Testing Inner Step  2 -----
+Inner Loss:  1.6570091409968362e-05
+----Testing Inner Step  3 -----
+Inner Loss:  3.087520618854407e-05
+----Testing Inner Step  4 -----
+Inner Loss:  0.22105580000607006
+----Testing Inner Step  5 -----
+Inner Loss:  6.725674549150946e-05
+----Testing Inner Step  6 -----
+Inner Loss:  6.890580802324362e-05
+----Testing Inner Step  7 -----
+Inner Loss:  7.853053830331191e-05
+----Testing Inner Step  8 -----
+Inner Loss:  8.063373024924658e-05
+----Testing Inner Step  9 -----
+Inner Loss:  7.869799914520367e-05
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 1.0
+accuracy on task 1 after finalizing: 0.95
+accuracy on task 2 after finalizing: 1.0
+Step: 10 Test F1: 0.9666666666666667
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4298861742603809
+----Training Inner Step  1 -----
+Inner Loss:  0.6666386228586946
+----Training Inner Step  2 -----
+Inner Loss:  0.5804496867848294
+----Training Inner Step  3 -----
+Inner Loss:  0.2793905032532556
+----Training Inner Step  4 -----
+Inner Loss:  0.2253865727356502
+----Training Inner Step  5 -----
+Inner Loss:  0.2843725234270096
+----Training Inner Step  6 -----
+Inner Loss:  0.246734761766025
+----Training Inner Step  7 -----
+Inner Loss:  0.17120932042598724
+----Training Inner Step  8 -----
+Inner Loss:  0.16088907314198359
+----Training Inner Step  9 -----
+Inner Loss:  0.16096629255584308
+S_Test
+Query Acc:  0.9
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.25432672032288145
+----Training Inner Step  1 -----
+Inner Loss:  0.07669220705117498
+----Training Inner Step  2 -----
+Inner Loss:  0.01543670247441956
+----Training Inner Step  3 -----
+Inner Loss:  0.10192709025328181
+----Training Inner Step  4 -----
+Inner Loss:  0.0463595135120808
+----Training Inner Step  5 -----
+Inner Loss:  0.002984366230001407
+----Training Inner Step  6 -----
+Inner Loss:  0.002235594255450581
+----Training Inner Step  7 -----
+Inner Loss:  0.002011351669872446
+----Training Inner Step  8 -----
+Inner Loss:  0.0011162757873535156
+----Training Inner Step  9 -----
+Inner Loss:  0.0007684117216350776
+S_Test
+Query Acc:  0.85
+Step: 11 	training Acc: 0.875
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.412357543195997
+----Training Inner Step  1 -----
+Inner Loss:  0.1679214441350528
+----Training Inner Step  2 -----
+Inner Loss:  0.0921752726925271
+----Training Inner Step  3 -----
+Inner Loss:  0.06941542654697384
+----Training Inner Step  4 -----
+Inner Loss:  0.053075889591127634
+----Training Inner Step  5 -----
+Inner Loss:  0.026758244992899045
+----Training Inner Step  6 -----
+Inner Loss:  0.006735094224235841
+----Training Inner Step  7 -----
+Inner Loss:  0.002950454047614975
+----Training Inner Step  8 -----
+Inner Loss:  0.0011295278922521643
+----Training Inner Step  9 -----
+Inner Loss:  0.0011400949401182256
+S_Test
+Query Acc:  0.7
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5463689310210091
+----Training Inner Step  1 -----
+Inner Loss:  0.0652514650885548
+----Training Inner Step  2 -----
+Inner Loss:  0.10252372441547257
+----Training Inner Step  3 -----
+Inner Loss:  0.07913786172866821
+----Training Inner Step  4 -----
+Inner Loss:  0.04695543141237327
+----Training Inner Step  5 -----
+Inner Loss:  0.027077139089150087
+----Training Inner Step  6 -----
+Inner Loss:  0.012502557498269848
+----Training Inner Step  7 -----
+Inner Loss:  0.004710640226091657
+----Training Inner Step  8 -----
+Inner Loss:  0.003190401816807155
+----Training Inner Step  9 -----
+Inner Loss:  0.0017746062284069402
+S_Test
+Query Acc:  0.85
+Step: 12 	training Acc: 0.7749999999999999
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0007027671319000157
+----Testing Inner Step  1 -----
+Inner Loss:  0.00010632617029062073
+----Testing Inner Step  2 -----
+Inner Loss:  6.36691137125516e-05
+----Testing Inner Step  3 -----
+Inner Loss:  0.00010781912871087635
+----Testing Inner Step  4 -----
+Inner Loss:  2.6532581874302457e-05
+----Testing Inner Step  5 -----
+Inner Loss:  2.3146470084611792e-05
+----Testing Inner Step  6 -----
+Inner Loss:  0.0005637889926219941
+----Testing Inner Step  7 -----
+Inner Loss:  1.561357839818811e-05
+----Testing Inner Step  8 -----
+Inner Loss:  3.679877188135704e-05
+----Testing Inner Step  9 -----
+Inner Loss:  0.0006896739693209904
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  8.985542185005866e-05
+----Testing Inner Step  1 -----
+Inner Loss:  0.09939310664218023
+----Testing Inner Step  2 -----
+Inner Loss:  1.2905824730426372e-05
+----Testing Inner Step  3 -----
+Inner Loss:  0.17289102645151747
+----Testing Inner Step  4 -----
+Inner Loss:  0.00010645673124339996
+----Testing Inner Step  5 -----
+Inner Loss:  0.00010003078283002001
+----Testing Inner Step  6 -----
+Inner Loss:  3.29869134085519e-05
+----Testing Inner Step  7 -----
+Inner Loss:  2.9643376754912814e-05
+----Testing Inner Step  8 -----
+Inner Loss:  3.630490469471884e-05
+----Testing Inner Step  9 -----
+Inner Loss:  3.234829221452985e-05
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0006661046116797868
+----Testing Inner Step  1 -----
+Inner Loss:  1.3975869868383078e-05
+----Testing Inner Step  2 -----
+Inner Loss:  0.05894476175301731
+----Testing Inner Step  3 -----
+Inner Loss:  5.4254418241076306e-05
+----Testing Inner Step  4 -----
+Inner Loss:  9.193306985772714e-06
+----Testing Inner Step  5 -----
+Inner Loss:  9.383473947569396e-06
+----Testing Inner Step  6 -----
+Inner Loss:  8.404254848366171e-06
+----Testing Inner Step  7 -----
+Inner Loss:  9.020169532699843e-06
+----Testing Inner Step  8 -----
+Inner Loss:  8.506434304373605e-06
+----Testing Inner Step  9 -----
+Inner Loss:  9.383474012533302e-06
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 1.0
+accuracy on task 2 after finalizing: 1.0
+Step: 12 Test F1: 0.9833333333333334
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.8505243304229485
+----Training Inner Step  1 -----
+Inner Loss:  0.4630600125320988
+----Training Inner Step  2 -----
+Inner Loss:  0.2767965826372217
+----Training Inner Step  3 -----
+Inner Loss:  0.11207345839855927
+----Training Inner Step  4 -----
+Inner Loss:  0.07345974086118597
+----Training Inner Step  5 -----
+Inner Loss:  0.16227966227701732
+----Training Inner Step  6 -----
+Inner Loss:  0.20744994628642285
+----Training Inner Step  7 -----
+Inner Loss:  0.3149307936962162
+----Training Inner Step  8 -----
+Inner Loss:  0.41890933604112696
+----Training Inner Step  9 -----
+Inner Loss:  0.5221474298409053
+S_Test
+Query Acc:  0.65
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.37639654747077395
+----Training Inner Step  1 -----
+Inner Loss:  0.25951777611460003
+----Training Inner Step  2 -----
+Inner Loss:  0.07703823057402458
+----Training Inner Step  3 -----
+Inner Loss:  0.008858301044840897
+----Training Inner Step  4 -----
+Inner Loss:  0.0016453351210137562
+----Training Inner Step  5 -----
+Inner Loss:  0.00046357229335366616
+----Training Inner Step  6 -----
+Inner Loss:  0.0002540662182062598
+----Training Inner Step  7 -----
+Inner Loss:  0.0002075944628034319
+----Training Inner Step  8 -----
+Inner Loss:  0.00018924048968723843
+----Training Inner Step  9 -----
+Inner Loss:  0.00017229432082136294
+S_Test
+Query Acc:  0.85
+Step: 13 	training Acc: 0.75
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5636569391936064
+----Training Inner Step  1 -----
+Inner Loss:  0.11749931175394782
+----Training Inner Step  2 -----
+Inner Loss:  0.02841334942994373
+----Training Inner Step  3 -----
+Inner Loss:  0.10959666022764784
+----Training Inner Step  4 -----
+Inner Loss:  0.09856609567733747
+----Training Inner Step  5 -----
+Inner Loss:  0.07276875086660896
+----Training Inner Step  6 -----
+Inner Loss:  0.028016258496791124
+----Training Inner Step  7 -----
+Inner Loss:  0.00301437292780195
+----Training Inner Step  8 -----
+Inner Loss:  0.0019488022163776414
+----Training Inner Step  9 -----
+Inner Loss:  0.0016016023665932672
+S_Test
+Query Acc:  1.0
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.7310524199690137
+----Training Inner Step  1 -----
+Inner Loss:  0.3718506097793579
+----Training Inner Step  2 -----
+Inner Loss:  0.2953852670533316
+----Training Inner Step  3 -----
+Inner Loss:  0.2660941630601883
+----Training Inner Step  4 -----
+Inner Loss:  0.2018415236047336
+----Training Inner Step  5 -----
+Inner Loss:  0.17468901856669358
+----Training Inner Step  6 -----
+Inner Loss:  0.1744044968592269
+----Training Inner Step  7 -----
+Inner Loss:  0.15292829115475928
+----Training Inner Step  8 -----
+Inner Loss:  0.12320209188120705
+----Training Inner Step  9 -----
+Inner Loss:  0.11404068262449332
+S_Test
+Query Acc:  0.95
+Step: 14 	training Acc: 0.975
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0496346485534949
+----Testing Inner Step  1 -----
+Inner Loss:  0.08438085590023547
+----Testing Inner Step  2 -----
+Inner Loss:  0.03490401802784098
+----Testing Inner Step  3 -----
+Inner Loss:  0.0014421826428068535
+----Testing Inner Step  4 -----
+Inner Loss:  0.001326853342886482
+----Testing Inner Step  5 -----
+Inner Loss:  0.0011811228053245162
+----Testing Inner Step  6 -----
+Inner Loss:  0.013472838069511843
+----Testing Inner Step  7 -----
+Inner Loss:  0.0008920871187001467
+----Testing Inner Step  8 -----
+Inner Loss:  0.0007807910442352295
+----Testing Inner Step  9 -----
+Inner Loss:  0.0052794785754356
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.00035608382417454517
+----Testing Inner Step  1 -----
+Inner Loss:  0.025675217310760803
+----Testing Inner Step  2 -----
+Inner Loss:  0.015259957384582126
+----Testing Inner Step  3 -----
+Inner Loss:  0.000712153435545458
+----Testing Inner Step  4 -----
+Inner Loss:  2.057779420283623e-05
+----Testing Inner Step  5 -----
+Inner Loss:  1.6047840940050912e-05
+----Testing Inner Step  6 -----
+Inner Loss:  1.4810335155094176e-05
+----Testing Inner Step  7 -----
+Inner Loss:  1.689365931919643e-05
+----Testing Inner Step  8 -----
+Inner Loss:  1.2068521495426207e-05
+----Testing Inner Step  9 -----
+Inner Loss:  1.1654127125179262e-05
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.07440237488058951
+----Testing Inner Step  1 -----
+Inner Loss:  0.00046296346226881724
+----Testing Inner Step  2 -----
+Inner Loss:  0.0010097197069366562
+----Testing Inner Step  3 -----
+Inner Loss:  0.14902950893416086
+----Testing Inner Step  4 -----
+Inner Loss:  0.2562355484296859
+----Testing Inner Step  5 -----
+Inner Loss:  0.2039713802805636
+----Testing Inner Step  6 -----
+Inner Loss:  0.13300261895970575
+----Testing Inner Step  7 -----
+Inner Loss:  0.07288060470351151
+----Testing Inner Step  8 -----
+Inner Loss:  0.15117699173944338
+----Testing Inner Step  9 -----
+Inner Loss:  0.0687705281057528
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 1.0
+accuracy on task 2 after finalizing: 1.0
+Step: 14 Test F1: 0.9833333333333334
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.41228342269148144
+----Training Inner Step  1 -----
+Inner Loss:  0.33490119209246977
+----Training Inner Step  2 -----
+Inner Loss:  0.2287886334317071
+----Training Inner Step  3 -----
+Inner Loss:  0.22584400006702968
+----Training Inner Step  4 -----
+Inner Loss:  0.22389824156250274
+----Training Inner Step  5 -----
+Inner Loss:  0.47255877192531315
+----Training Inner Step  6 -----
+Inner Loss:  0.5084410096917834
+----Training Inner Step  7 -----
+Inner Loss:  0.4679669269493648
+----Training Inner Step  8 -----
+Inner Loss:  0.4743886547429221
+----Training Inner Step  9 -----
+Inner Loss:  0.4069806124482836
+S_Test
+Query Acc:  0.8
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5941478099141803
+----Training Inner Step  1 -----
+Inner Loss:  0.3826495238712856
+----Training Inner Step  2 -----
+Inner Loss:  0.41197106561490465
+----Training Inner Step  3 -----
+Inner Loss:  0.30721707322767805
+----Training Inner Step  4 -----
+Inner Loss:  0.2921656859772546
+----Training Inner Step  5 -----
+Inner Loss:  0.23905128879206522
+----Training Inner Step  6 -----
+Inner Loss:  0.3073260597884655
+----Training Inner Step  7 -----
+Inner Loss:  0.22744823566504888
+----Training Inner Step  8 -----
+Inner Loss:  0.18796653194086893
+----Training Inner Step  9 -----
+Inner Loss:  0.15676592769367353
+S_Test
+Query Acc:  0.75
+Step: 15 	training Acc: 0.775
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4173027660165514
+----Training Inner Step  1 -----
+Inner Loss:  0.2788484351975577
+----Training Inner Step  2 -----
+Inner Loss:  0.1578544851924692
+----Training Inner Step  3 -----
+Inner Loss:  0.1091750729829073
+----Training Inner Step  4 -----
+Inner Loss:  0.10327659440892083
+----Training Inner Step  5 -----
+Inner Loss:  0.0709818336846573
+----Training Inner Step  6 -----
+Inner Loss:  0.060707093748663156
+----Training Inner Step  7 -----
+Inner Loss:  0.06798104170177664
+----Training Inner Step  8 -----
+Inner Loss:  0.06952761659132582
+----Training Inner Step  9 -----
+Inner Loss:  0.06382815752710615
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4760498377893652
+----Training Inner Step  1 -----
+Inner Loss:  0.2708903189216341
+----Training Inner Step  2 -----
+Inner Loss:  0.10938138142228127
+----Training Inner Step  3 -----
+Inner Loss:  0.0739756247826985
+----Training Inner Step  4 -----
+Inner Loss:  0.028996949616287435
+----Training Inner Step  5 -----
+Inner Loss:  0.00992859693776284
+----Training Inner Step  6 -----
+Inner Loss:  0.005685113802818316
+----Training Inner Step  7 -----
+Inner Loss:  0.0033302520335252795
+----Training Inner Step  8 -----
+Inner Loss:  0.002286410058981606
+----Training Inner Step  9 -----
+Inner Loss:  0.0017343177792749234
+S_Test
+Query Acc:  0.75
+Step: 16 	training Acc: 0.85
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.0930506090434002
+----Testing Inner Step  1 -----
+Inner Loss:  0.0019899181123556836
+----Testing Inner Step  2 -----
+Inner Loss:  0.0035467517362641437
+----Testing Inner Step  3 -----
+Inner Loss:  0.0009845523537868367
+----Testing Inner Step  4 -----
+Inner Loss:  0.0006880618332486067
+----Testing Inner Step  5 -----
+Inner Loss:  0.0005261103339892413
+----Testing Inner Step  6 -----
+Inner Loss:  0.005370720164916877
+----Testing Inner Step  7 -----
+Inner Loss:  0.00038467276317533106
+----Testing Inner Step  8 -----
+Inner Loss:  0.000344045102662806
+----Testing Inner Step  9 -----
+Inner Loss:  0.00030999808119044507
+----Testing Outer Step-----
+Outer Acc:  1.0
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.03655116115779882
+----Testing Inner Step  1 -----
+Inner Loss:  0.02729988599458011
+----Testing Inner Step  2 -----
+Inner Loss:  0.0001801181393342891
+----Testing Inner Step  3 -----
+Inner Loss:  0.0001389810017177037
+----Testing Inner Step  4 -----
+Inner Loss:  0.0001235490760466616
+----Testing Inner Step  5 -----
+Inner Loss:  0.00010288045554521627
+----Testing Inner Step  6 -----
+Inner Loss:  0.00010507447378976005
+----Testing Inner Step  7 -----
+Inner Loss:  8.640970450609789e-05
+----Testing Inner Step  8 -----
+Inner Loss:  7.055203137237445e-05
+----Testing Inner Step  9 -----
+Inner Loss:  6.280626621446572e-05
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.13936868735722133
+----Testing Inner Step  1 -----
+Inner Loss:  0.10179911837206289
+----Testing Inner Step  2 -----
+Inner Loss:  0.11290057352744043
+----Testing Inner Step  3 -----
+Inner Loss:  0.060947954055986235
+----Testing Inner Step  4 -----
+Inner Loss:  0.1197028559233461
+----Testing Inner Step  5 -----
+Inner Loss:  0.1044618875852653
+----Testing Inner Step  6 -----
+Inner Loss:  0.11429689265787601
+----Testing Inner Step  7 -----
+Inner Loss:  0.1068899290902274
+----Testing Inner Step  8 -----
+Inner Loss:  0.09447487177593368
+----Testing Inner Step  9 -----
+Inner Loss:  0.09233641531318426
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 1.0
+accuracy on task 2 after finalizing: 0.9
+Step: 16 Test F1: 0.9500000000000001
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.5999114470822471
+----Training Inner Step  1 -----
+Inner Loss:  0.5249350491378989
+----Training Inner Step  2 -----
+Inner Loss:  0.27163429877587725
+----Training Inner Step  3 -----
+Inner Loss:  0.25242323109081816
+----Training Inner Step  4 -----
+Inner Loss:  0.18312414096934454
+----Training Inner Step  5 -----
+Inner Loss:  0.1578475987272603
+----Training Inner Step  6 -----
+Inner Loss:  0.1427044996193477
+----Training Inner Step  7 -----
+Inner Loss:  0.14172742289624043
+----Training Inner Step  8 -----
+Inner Loss:  0.12692671136132308
+----Training Inner Step  9 -----
+Inner Loss:  0.15544431975909642
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.399887563926833
+----Training Inner Step  1 -----
+Inner Loss:  0.1476245160613741
+----Training Inner Step  2 -----
+Inner Loss:  0.18249883662377084
+----Training Inner Step  3 -----
+Inner Loss:  0.23836041454757964
+----Training Inner Step  4 -----
+Inner Loss:  0.18824243066566332
+----Training Inner Step  5 -----
+Inner Loss:  0.12693774753383227
+----Training Inner Step  6 -----
+Inner Loss:  0.22939419906054223
+----Training Inner Step  7 -----
+Inner Loss:  0.19904801355940954
+----Training Inner Step  8 -----
+Inner Loss:  0.24709671682545117
+----Training Inner Step  9 -----
+Inner Loss:  0.14764114522508212
+S_Test
+Query Acc:  0.8
+Step: 17 	training Acc: 0.875
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.36911292214478764
+----Training Inner Step  1 -----
+Inner Loss:  0.5262981578707695
+----Training Inner Step  2 -----
+Inner Loss:  0.612728693655559
+----Training Inner Step  3 -----
+Inner Loss:  0.4835562322820936
+----Training Inner Step  4 -----
+Inner Loss:  0.5215166764599937
+----Training Inner Step  5 -----
+Inner Loss:  0.44499094571386066
+----Training Inner Step  6 -----
+Inner Loss:  0.4578993490764073
+----Training Inner Step  7 -----
+Inner Loss:  0.4499212035111019
+----Training Inner Step  8 -----
+Inner Loss:  0.4654944304909025
+----Training Inner Step  9 -----
+Inner Loss:  0.48610398386205944
+S_Test
+Query Acc:  0.75
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.6259331660611289
+----Training Inner Step  1 -----
+Inner Loss:  0.5850682088306972
+----Training Inner Step  2 -----
+Inner Loss:  0.48343545624188017
+----Training Inner Step  3 -----
+Inner Loss:  0.40347812856946674
+----Training Inner Step  4 -----
+Inner Loss:  0.38316128083637785
+----Training Inner Step  5 -----
+Inner Loss:  0.2851566640394075
+----Training Inner Step  6 -----
+Inner Loss:  0.23565981749977385
+----Training Inner Step  7 -----
+Inner Loss:  0.2795741632580757
+----Training Inner Step  8 -----
+Inner Loss:  0.22203820092337473
+----Training Inner Step  9 -----
+Inner Loss:  0.21444578149488994
+S_Test
+Query Acc:  0.85
+Step: 18 	training Acc: 0.8
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.16686284329210008
+----Testing Inner Step  1 -----
+Inner Loss:  0.2419948045696531
+----Testing Inner Step  2 -----
+Inner Loss:  0.17497501894831657
+----Testing Inner Step  3 -----
+Inner Loss:  0.37881497719458174
+----Testing Inner Step  4 -----
+Inner Loss:  0.1950565544622285
+----Testing Inner Step  5 -----
+Inner Loss:  0.20153965481689998
+----Testing Inner Step  6 -----
+Inner Loss:  0.1303329643394266
+----Testing Inner Step  7 -----
+Inner Loss:  0.1400203055569104
+----Testing Inner Step  8 -----
+Inner Loss:  0.16265290017638886
+----Testing Inner Step  9 -----
+Inner Loss:  0.1411843459521021
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.2123722910348858
+----Testing Inner Step  1 -----
+Inner Loss:  0.08110695305679526
+----Testing Inner Step  2 -----
+Inner Loss:  0.07459395485264915
+----Testing Inner Step  3 -----
+Inner Loss:  0.05923818264688764
+----Testing Inner Step  4 -----
+Inner Loss:  0.057734974194318056
+----Testing Inner Step  5 -----
+Inner Loss:  0.06712929122815174
+----Testing Inner Step  6 -----
+Inner Loss:  0.01081414454217468
+----Testing Inner Step  7 -----
+Inner Loss:  0.007778809339340244
+----Testing Inner Step  8 -----
+Inner Loss:  0.0014590351243636438
+----Testing Inner Step  9 -----
+Inner Loss:  0.0007329498143267951
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.30674708741259693
+----Testing Inner Step  1 -----
+Inner Loss:  0.08762609390916103
+----Testing Inner Step  2 -----
+Inner Loss:  0.12274746450462512
+----Testing Inner Step  3 -----
+Inner Loss:  0.0973670200577804
+----Testing Inner Step  4 -----
+Inner Loss:  0.05319218277665121
+----Testing Inner Step  5 -----
+Inner Loss:  0.06057763096344258
+----Testing Inner Step  6 -----
+Inner Loss:  0.05071648955345154
+----Testing Inner Step  7 -----
+Inner Loss:  0.007113929205973234
+----Testing Inner Step  8 -----
+Inner Loss:  0.06142235796765557
+----Testing Inner Step  9 -----
+Inner Loss:  0.07712293529350843
+----Testing Outer Step-----
+Outer Acc:  0.7
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.9
+accuracy on task 1 after finalizing: 0.9
+accuracy on task 2 after finalizing: 0.7
+Step: 18 Test F1: 0.85
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.8582839582647596
+----Training Inner Step  1 -----
+Inner Loss:  0.3129680986915316
+----Training Inner Step  2 -----
+Inner Loss:  0.27429469781262533
+----Training Inner Step  3 -----
+Inner Loss:  0.11833016361509051
+----Training Inner Step  4 -----
+Inner Loss:  0.09376693064613002
+----Training Inner Step  5 -----
+Inner Loss:  0.06526212168059178
+----Training Inner Step  6 -----
+Inner Loss:  0.05268368484186275
+----Training Inner Step  7 -----
+Inner Loss:  0.012345739706818546
+----Training Inner Step  8 -----
+Inner Loss:  0.009698664436915092
+----Training Inner Step  9 -----
+Inner Loss:  0.03329821626123573
+S_Test
+Query Acc:  0.8
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.6031119723671249
+----Training Inner Step  1 -----
+Inner Loss:  0.3490694484540394
+----Training Inner Step  2 -----
+Inner Loss:  0.25340443743126734
+----Training Inner Step  3 -----
+Inner Loss:  0.2827810432229723
+----Training Inner Step  4 -----
+Inner Loss:  0.16501855743782862
+----Training Inner Step  5 -----
+Inner Loss:  0.1688262947968074
+----Training Inner Step  6 -----
+Inner Loss:  0.11793643182941846
+----Training Inner Step  7 -----
+Inner Loss:  0.13361888032938754
+----Training Inner Step  8 -----
+Inner Loss:  0.14367337764373847
+----Training Inner Step  9 -----
+Inner Loss:  0.09310698562434741
+S_Test
+Query Acc:  0.85
+Step: 19 	training Acc: 0.825
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.6095256698983056
+----Training Inner Step  1 -----
+Inner Loss:  0.2915748187473842
+----Training Inner Step  2 -----
+Inner Loss:  0.17594759645206587
+----Training Inner Step  3 -----
+Inner Loss:  0.12119078529732567
+----Training Inner Step  4 -----
+Inner Loss:  0.10125230039869036
+----Training Inner Step  5 -----
+Inner Loss:  0.08209568421755518
+----Training Inner Step  6 -----
+Inner Loss:  0.0693491343408823
+----Training Inner Step  7 -----
+Inner Loss:  0.0642456973769835
+----Training Inner Step  8 -----
+Inner Loss:  0.06114268582314253
+----Training Inner Step  9 -----
+Inner Loss:  0.06354354388479676
+S_Test
+Query Acc:  0.95
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.4108585672719138
+----Training Inner Step  1 -----
+Inner Loss:  0.2905991774584566
+----Training Inner Step  2 -----
+Inner Loss:  0.32699724606105257
+----Training Inner Step  3 -----
+Inner Loss:  0.2633382050054414
+----Training Inner Step  4 -----
+Inner Loss:  0.2907222147498812
+----Training Inner Step  5 -----
+Inner Loss:  0.34367161776338306
+----Training Inner Step  6 -----
+Inner Loss:  0.28616284898349215
+----Training Inner Step  7 -----
+Inner Loss:  0.29990089365414213
+----Training Inner Step  8 -----
+Inner Loss:  0.28611629349844797
+----Training Inner Step  9 -----
+Inner Loss:  0.338063440152577
+S_Test
+Query Acc:  0.85
+Step: 20 	training Acc: 0.8999999999999999
+
+-----------------Testing Mode-----------------
+
+----Task 0 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.13731887617281505
+----Testing Inner Step  1 -----
+Inner Loss:  0.014403194189071655
+----Testing Inner Step  2 -----
+Inner Loss:  0.004610643456024783
+----Testing Inner Step  3 -----
+Inner Loss:  0.0008603462234272488
+----Testing Inner Step  4 -----
+Inner Loss:  0.001188921056122386
+----Testing Inner Step  5 -----
+Inner Loss:  0.000363432228498693
+----Testing Inner Step  6 -----
+Inner Loss:  0.00025754741052099107
+----Testing Inner Step  7 -----
+Inner Loss:  0.0002174164546886459
+----Testing Inner Step  8 -----
+Inner Loss:  0.00019899152227610881
+----Testing Inner Step  9 -----
+Inner Loss:  0.00017681575887503901
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Task 1 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.1114958879396519
+----Testing Inner Step  1 -----
+Inner Loss:  0.32935656713587896
+----Testing Inner Step  2 -----
+Inner Loss:  0.09729836295757975
+----Testing Inner Step  3 -----
+Inner Loss:  0.10642710314797503
+----Testing Inner Step  4 -----
+Inner Loss:  0.0942123851605824
+----Testing Inner Step  5 -----
+Inner Loss:  0.017979239712336233
+----Testing Inner Step  6 -----
+Inner Loss:  0.10538004272218261
+----Testing Inner Step  7 -----
+Inner Loss:  0.2892456266896001
+----Testing Inner Step  8 -----
+Inner Loss:  0.054734953945236545
+----Testing Inner Step  9 -----
+Inner Loss:  0.07144846847014767
+----Testing Outer Step-----
+Outer Acc:  0.95
+----Task 2 ----
+----Testing Inner Step  0 -----
+Inner Loss:  0.007898682728409767
+----Testing Inner Step  1 -----
+Inner Loss:  0.0007833284991128105
+----Testing Inner Step  2 -----
+Inner Loss:  0.00021374367393686304
+----Testing Inner Step  3 -----
+Inner Loss:  0.00012684152170550078
+----Testing Inner Step  4 -----
+Inner Loss:  8.742298190814577e-05
+----Testing Inner Step  5 -----
+Inner Loss:  7.537149213021621e-05
+----Testing Inner Step  6 -----
+Inner Loss:  6.213926150979075e-05
+----Testing Inner Step  7 -----
+Inner Loss:  5.8775856554607996e-05
+----Testing Inner Step  8 -----
+Inner Loss:  5.081721766535858e-05
+----Testing Inner Step  9 -----
+Inner Loss:  4.99827515990806e-05
+----Testing Outer Step-----
+Outer Acc:  0.9
+----Testing Forgetting-----
+accuracy on task 0 after finalizing: 0.95
+accuracy on task 1 after finalizing: 1.0
+accuracy on task 2 after finalizing: 0.9
+Step: 20 Test F1: 0.9166666666666666
+----Task 0 ----
+----Training Inner Step  0 -----
+Inner Loss:  1.1847924107486116
+----Training Inner Step  1 -----
+Inner Loss:  0.7862731649407319
+----Training Inner Step  2 -----
+Inner Loss:  0.5860348301274436
+----Training Inner Step  3 -----
+Inner Loss:  0.46218350529670715
+----Training Inner Step  4 -----
+Inner Loss:  0.36809819830315454
+----Training Inner Step  5 -----
+Inner Loss:  0.36543656992060797
+----Training Inner Step  6 -----
+Inner Loss:  0.4756047853401729
+----Training Inner Step  7 -----
+Inner Loss:  0.41527903931481497
+----Training Inner Step  8 -----
+Inner Loss:  0.4702174152646746
+----Training Inner Step  9 -----
+Inner Loss:  0.449272347348077
+S_Test
+Query Acc:  0.7
+----Task 1 ----
+----Training Inner Step  0 -----
+Inner Loss:  0.37006270779030664

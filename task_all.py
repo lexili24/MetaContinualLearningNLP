@@ -16,24 +16,7 @@
 
 
 # https://github.com/nyu-mll/jiant/blob/11e3b696c088260d138d9c75a851d2234a3cdb2f/src/models.py#L523 
-# multi task model 
-
-'''
- parser.add_argument(
-        "--doc_stride",
-        default=128,
-        type=int,
-        help="When splitting up a long document into chunks, how much stride to take between chunks.",
-    )
-
-parser.add_argument(
-    "--max_query_length",
-    default=64,
-    type=int,
-    help="The maximum number of tokens for the question. Questions longer than this will "
-    "be truncated to this length.",
-)
-'''
+# multi task model for reference 
 
 
 import os
@@ -55,14 +38,6 @@ from transformers.data.processors.squad import SquadV2Processor
 # in local by running python3 ../../utils/download_glue_data.py under transformers directory
 # download SQuAD at https://rajpurkar.github.io/SQuAD-explorer/
 # download superglue using `download_superglue.py` and save it to same directory as GLUE data, in a sub-directory called `superglue`
-
-
-## TODO: 
-## 1. in arguments add 'data_dir, model_name_or_path (removed), max_seq_length, local_rank' done
-## 2. add SQuAD (done) and SUPERGlue
-## 3. Optimize run time? current function seperate datasets and select k samples randomly. done
-##    Run time is improved by without preprocessing examples to features and recall features everytime,
-##    instead this script calls k examples randomly and transform features in place each time. 
 
 # USAGE: 
 # INPUT:
@@ -120,6 +95,7 @@ class MetaTask(Dataset):
 
         self.doc_stride       = args.doc_stride
         self.max_query_length = args.max_query_length
+        self.task_names       = []
         self.create_batch(self.num_task)
 
     def create_batch(self, num_task):
@@ -131,7 +107,8 @@ class MetaTask(Dataset):
         # 1. randomly select num_task GLUE + SuperGLUe tasks
         #    If its in testing phrase, output all pre-selected testing tasks in random order  
         if not self.evaluate:
-            possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
+            #possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
+            possible_tasks = ['cola','mrpc','sst-2','qqp','qnli','rte','wnli'] 
         else:
             possible_tasks = ['squad']
 
@@ -140,7 +117,8 @@ class MetaTask(Dataset):
             tasks = random.choices(possible_tasks, k = num_task)
         else:
             tasks = random.sample(possible_tasks, num_task) # select k unique tasks
- 
+
+        self.task_names = tasks
         for b in range(num_task):  ## for each task
             task = tasks[b]
             print(task)
@@ -158,6 +136,7 @@ class MetaTask(Dataset):
             # 3. put into support and queries 
             self.supports.append(exam_train)
             self.queries.append(exam_test)
+        print('length of support dataloader', len(self.supports))
             
     ###################################
     #### dataloader of Super-GLUE  ####
@@ -352,3 +331,6 @@ class MetaTask(Dataset):
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return self.num_task
+    
+    def get_tasks(self):
+        return self.task_names

@@ -107,9 +107,9 @@ def main():
     #                 k_query=args.k_qry, tokenizer = tokenizer)
 
     test = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
-                    k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = True)
+                    k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
 
-
+    print(test.task_names)
     global_step = 0
     for epoch in range(args.epoch):
 
@@ -142,4 +142,4 @@ def main():
             global_step += 1
             
 if __name__ == "__main__":
-    main()
+    main() 

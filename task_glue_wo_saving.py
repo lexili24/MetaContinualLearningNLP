@@ -46,7 +46,7 @@ import json, pickle
 from torch.utils.data import TensorDataset, RandomSampler
 from transformers import glue_processors, superglue_processors
 from transformers import glue_output_modes, superglue_output_modes
-from trasnformers import squad_convert_examples_to_features
+from transformers import squad_convert_examples_to_features
 from transformers import glue_convert_examples_to_features, superglue_convert_examples_to_features
 import logging
 from transformers.data.processors.squad import SquadV2Processor
@@ -79,11 +79,17 @@ from transformers.data.processors.squad import SquadV2Processor
     #          (support TensorDataset, query TensorDataset),
     #          (support TensorDataset, query TensorDataset)]
     
-    # (1) Glue 
+    # - Glue and Super-glue BoolQ, RTE2 and CB
     # train/test support = train/test query =  TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids)
-    # (2) SQuaD:
-    # dataset = TensorDataset(all_input_ids, all_attention_masks, all_token_type_ids, all_start_positions,
-    #           all_end_positions, all_cls_index, all_p_mask, all_is_impossible, )
+    # - SQuaD:
+    # train/test support = train/test query = TensorDataset(all_input_ids, all_attention_masks, all_token_type_ids, all_start_positions,
+    #                                                       all_end_positions, all_cls_index, all_p_mask, all_is_impossible, )
+    # - Super-gLue COPA: 
+    # train/test support = train/test query =  (TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids), 
+    #                                           TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids) )
+    # - Super-glue WiC and WSC: 
+    # train/test support = train/test query = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids, 
+    #                                                       all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text)
     
 logger = logging.getLogger(__name__)
 class MetaTask(Dataset):
@@ -111,7 +117,7 @@ class MetaTask(Dataset):
         self.local_rank       = args.local_rank
         self.data_dir         = args.data_dir
         self.bert_model       = args.bert_model
-        self.overwrite_cache  = args.overwrite_cache
+
         self.doc_stride       = args.doc_stride
         self.max_query_length = args.max_query_length
         self.create_batch(self.num_task)
@@ -125,7 +131,9 @@ class MetaTask(Dataset):
         # 1. randomly select num_task GLUE + SuperGLUe tasks
         #    If its in testing phrase, output all pre-selected testing tasks in random order  
         if not self.evaluate:
-            possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
+            #possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
+            #possible_tasks = list(superglue_processors.keys())
+            possible_tasks = ['wic']
         else:
             possible_tasks = ['squad']
 
@@ -137,10 +145,10 @@ class MetaTask(Dataset):
  
         for b in range(num_task):  ## for each task
             task = tasks[b]
-            #print(task)
+            print(task)
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
-                dataset = self.load_and_cache_example_suqad(self.tokenizer, self.evaluate)
+                dataset = self.load_and_cache_examples_squad(self.tokenizer, self.evaluate)
             elif task in glue_processors.keys():
                 dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate) # map style dataset 
             else:
@@ -162,7 +170,7 @@ class MetaTask(Dataset):
         https://github.com/huggingface/transformers/blob/master/examples/run_glue.py#L334
         NOTE: currently does not support any reading comprehension tasks, namely MultiRC and ReCoRD. 
         '''
-        folder_name = {'boolq': 'BoolQ', 'multirc':'MultiRC', 'record': 'ReCoRD', 'wic': 'WiC'}
+        folder_name = {'boolq': 'BoolQ', 'multirc':'MultiRC', 'record': 'ReCoRD', 'wic': 'WiC', 'rte2': 'RTE'}
         if task in folder_name:
             task_data_path = folder_name[task]
         else:
@@ -184,14 +192,14 @@ class MetaTask(Dataset):
                 processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
             )
 
-        if len(selected_examples) < self.k_query + self.k_support:
+        if len(examples) < self.k_query + self.k_support:
             selected_examples = random.choices(examples, k = self.k_support + self.k_query)
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)
 
         features = superglue_convert_examples_to_features(
             selected_examples, tokenizer, max_length=self.max_seq_length, 
-            task = task,label_list=label_list, output_mode=output_mode, model_type = args.bert_model
+            task = task,label_list=label_list, output_mode=output_mode, model_type = self.bert_model
         )
 
         if self.local_rank == 0 and not evaluate:
@@ -199,35 +207,72 @@ class MetaTask(Dataset):
 
 
         # Convert to Tensors and build dataset
-        # TODO: for copa: features are returned as tuple. 
-        all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-        all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
-        all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
-        if output_mode == "classification":
-            all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
-        elif output_mode == "regression":
-            all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+        if task == 'copa': 
+            all_input_ids = list(map(lambda x: torch.tensor([f.input_ids for f in x], dtype = torch.long), features))
+            all_attention_mask = list(map(lambda x: torch.tensor([f.attention_mask for f in x], dtype=torch.long), features))
+            all_token_type_ids = list(map(lambda x: torch.tensor([f.token_type_ids for f in x], dtype=torch.long), features))
 
-        dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
+            if output_mode == "classification":
+                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.long), features))
+            elif output_mode == "regression":
+                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.float), features))
+                #all_labels = torch.tensor([f.label for f in features[0]], dtype=torch.float)
+
+            dataset = ( TensorDataset(all_input_ids[0], all_attention_mask[0], all_token_type_ids[0], all_labels[0]), 
+                        TensorDataset(all_input_ids[1], all_attention_mask[1], all_token_type_ids[1], all_labels[1]) )
+
+        elif task in ['wic', 'wsc']:
+            all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+            all_attention_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
+            all_token_type_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
+            all_span_1_mask = torch.tensor([f.span_1_mask for f in features], dtype=torch.long)
+            try: 
+                all_span_1_text = torch.tensor([f.span_1_text for f in features])
+            except:
+                print('all_span_1_text', features[0].span_1_text)
+                return 
+            all_span_2_mask = torch.tensor([f.span_2_mask for f in features], dtype=torch.long)
+            all_span_2_text = torch.tensor([f.span_2_text for f in features]) 
+
+            if output_mode == "classification":
+                all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
+            elif output_mode == "regression":
+                all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+
+            dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels,
+                                    all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text
+                                    )
+
+        else: #for 'boolq', 'cb', 'rte'
+            all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
+            all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
+            all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+            if output_mode == "classification":
+                all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
+            elif output_mode == "regression":
+                all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+
+            dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
+
         return dataset
 
     ### dataloader for SQuaD:
-    def load_and_cache_examples_squad(tokenizer, evaluate=False):
-     '''
+    def load_and_cache_examples_squad(self, tokenizer, evaluate=False):
+        '''
         Heavily insipired from official loading and cache scripts from Huggingface Transformer func load_and_cache_examples
         https://github.com/huggingface/transformers/blob/master/examples/run_squad.py
-    '''
-        if args.local_rank not in [-1, 0] and not evaluate:
+        '''
+        if self.local_rank not in [-1, 0] and not evaluate:
             # Make sure only the first process in distributed training process the dataset, and the others will use the cache
             torch.distributed.barrier()
 
         processor = SquadV2Processor() 
         if evaluate:
-            examples = processor.get_dev_examples(args.data_dir+'/SQUAD', filename=processor.train_file)
+            examples = processor.get_dev_examples(self.data_dir+'/SQUAD', filename=processor.train_file)
         else:
-            examples = processor.get_train_examples(args.data_dir+'/SQUAD', filename=processor.dev_file)
+            examples = processor.get_train_examples(self.data_dir+'/SQUAD', filename=processor.dev_file)
 
-        if len(selected_examples) < self.k_query + self.k_support:
+        if len(examples) < self.k_query + self.k_support:
             selected_examples = random.choices(examples, k = self.k_support + self.k_query)
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)
@@ -243,7 +288,7 @@ class MetaTask(Dataset):
             threads=1, # higher if multiple processing threads
         )
 
-        if args.local_rank == 0 and not evaluate:
+        if self.local_rank == 0 and not evaluate:
             # Make sure only the first process in distributed training process the dataset, and the others will use the cache
             torch.distributed.barrier()
 
@@ -277,7 +322,7 @@ class MetaTask(Dataset):
                 processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
             )
 
-        if len(selected_examples) < self.k_query + self.k_support:
+        if len(examples) < self.k_query + self.k_support:
             selected_examples = random.choices(examples, k = self.k_support + self.k_query)
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)

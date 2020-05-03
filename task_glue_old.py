@@ -92,25 +92,27 @@ class MetaTask(Dataset):
  
         for b in range(num_task):  ## for each task
             task = tasks[b]
-            #print(task)
+ 
             # 2.select k_support + k_query examples from task randomly
             dataset = self.load_and_cache_examples(task, self.tokenizer, self.evaluate) # map style dataset 
 
-            exam_train = dataset[:self.k_support]
-            exam_test  = dataset[self.k_support:]
+            random_indices = random.sample(range(1, len(dataset)), self.k_support+self.k_query)
+            exam_train = dataset[random_indices[:self.k_support]]
+            exam_test  = dataset[random_indices[self.k_support:]]
 
             # 3. put into support and queries 
             self.supports.append(exam_train)
             self.queries.append(exam_test)
+
 
     def load_and_cache_examples(self, task, tokenizer, evaluate=False):
         '''
         Copied from official loading and cache scripts from Huggingface Transformer load_and_cache_examples
         https://github.com/huggingface/transformers/blob/master/examples/run_glue.py#L334
         '''
-        folder_name = {'cola': 'CoLA', 'mnli-mm':'MNLI'}
-        if task in folder_name:
-            task_data_path = folder_name[task]
+        folder_dict = {'cola': 'CoLA', 'mnli-mm':'MNLI'}
+        if task in folder_dict:
+            task_data_path = folder_dict[task]
         else:
             task_data_path = task.upper()
 
@@ -122,19 +124,35 @@ class MetaTask(Dataset):
         output_mode = output_modes[task]
         cached_downloaded_file = os.path.join(self.data_dir, task_data_path)
         print(cached_downloaded_file)
-
-        logger.info(f"Creating {self.k_support+self.k_query} features from dataset file at {cached_downloaded_file}")
-        label_list = processor.get_labels()
-
-        examples = (
+        # Load data features from cache or dataset file
+        cached_features_file = os.path.join(
+            cached_downloaded_file,
+            "cached_{}_{}_{}_{}".format(
+                "dev" if evaluate else "train",
+                str(self.bert_model),
+                str(self.max_seq_length),
+                str(task),
+            ),
+        )
+ 
+        if os.path.exists(cached_features_file) and not self.overwrite_cache:
+            logger.info("Loading features from cached file %s", cached_features_file)
+            features = torch.load(cached_features_file)
+        else:
+            logger.info("Creating features from dataset file at %s", cached_downloaded_file)
+            label_list = processor.get_labels()
+            # if task in ["mnli", "mnli-mm"] and args.model_type in ["roberta", "xlmroberta"]:
+            #     # HACK(label indices are swapped in RoBERTa pretrained model)
+            #     label_list[1], label_list[2] = label_list[2], label_list[1]
+            examples = (
                 processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
             )
-
-        selected_examples = random.sample(examples, self.k_support + self.k_query)
-
-        features = convert_examples_to_features(
-            selected_examples, tokenizer, max_length=self.max_seq_length, label_list=label_list, output_mode=output_mode,
-        )
+            features = convert_examples_to_features(
+                selected_examples, tokenizer, max_length=self.max_seq_length, label_list=label_list, output_mode=output_mode,
+            )
+            if self.local_rank in [-1, 0]:
+                logger.info("Saving features into cached file %s", cached_features_file)
+                torch.save(features, cached_features_file)
 
         if self.local_rank == 0 and not evaluate:
             torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
@@ -159,3 +177,4 @@ class MetaTask(Dataset):
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return self.num_task
+

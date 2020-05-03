@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 from reptile import Learner
-from task_glue_wo_saving import MetaTask
+from task_all import MetaTask
 import random
 import numpy as np
 
@@ -107,38 +107,39 @@ def main():
     #                 k_query=args.k_qry, tokenizer = tokenizer)
 
     test = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
+                    k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = True)
+
+
+    global_step = 0
+    for epoch in range(args.epoch):
+
+
+        train = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
                     k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
 
+        db = create_batch_of_tasks(train, is_shuffle = True, batch_size = args.outer_batch_size)
 
-    # global_step = 0
-    # for epoch in range(args.epoch):
+        for step, task_batch in enumerate(db):
 
-    #     train = MetaTask(train_examples, num_task = args.num_task_train, k_support=args.k_spt, 
-    #                      k_query=args.k_qry, tokenizer = tokenizer)
+            acc = learner(task_batch)
 
-    #     db = create_batch_of_tasks(train, is_shuffle = True, batch_size = args.outer_batch_size)
+            print('Step:', step, '\ttraining Acc:', acc)
 
-    #     for step, task_batch in enumerate(db):
+            if global_step % 20 == 0:
+                random_seed(123)
+                print("\n-----------------Testing Mode-----------------\n")
+                db_test = create_batch_of_tasks(test, is_shuffle = False, batch_size = 1)
+                acc_all_test = []
 
-    #         acc = learner(task_batch)
+                for test_batch in db_test:
+                    acc = learner(test_batch, training = False)
+                    acc_all_test.append(acc)
 
-    #         print('Step:', step, '\ttraining Acc:', acc)
+                print('Step:', step, 'Test F1:', np.mean(acc_all_test))
 
-    #         if global_step % 20 == 0:
-    #             random_seed(123)
-    #             print("\n-----------------Testing Mode-----------------\n")
-    #             db_test = create_batch_of_tasks(test, is_shuffle = False, batch_size = 1)
-    #             acc_all_test = []
+                random_seed(int(time.time() % 10))
 
-    #             for test_batch in db_test:
-    #                 acc = learner(test_batch, training = False)
-    #                 acc_all_test.append(acc)
-
-    #             print('Step:', step, 'Test F1:', np.mean(acc_all_test))
-
-    #             random_seed(int(time.time() % 10))
-
-    #         global_step += 1
+            global_step += 1
             
 if __name__ == "__main__":
     main()

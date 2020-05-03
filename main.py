@@ -90,6 +90,13 @@ def main():
     parser.add_argument("--max_query_length", default=64, type=int,
                         help="The maximum number of tokens for the question. Questions longer than this will "
                         "be truncated to this length.")
+    
+    parser.add_argument("--training_tasks", default=['cola','mrpc','sst-2','qqp'], type=list,
+                    help="List of all meta training tasks list.")
+    
+    parser.add_argument("--testing_tasks", default=['qnli','rte','wnli'], type=list,
+                help="List of all meta testing tasks list.")
+
 
     args = parser.parse_args()
     ### NOTE: uncomment below if you are using default dataset 
@@ -106,10 +113,11 @@ def main():
     # test = MetaTask(test_examples, num_task = args.num_task_test, k_support=args.k_spt, 
     #                 k_query=args.k_qry, tokenizer = tokenizer)
 
-    test = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
-                    k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
+    test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt, 
+                    k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = False)
 
     print(test.task_names)
+
     global_step = 0
     for epoch in range(args.epoch):
 

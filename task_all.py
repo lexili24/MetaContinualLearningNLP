@@ -95,6 +95,8 @@ class MetaTask(Dataset):
 
         self.doc_stride       = args.doc_stride
         self.max_query_length = args.max_query_length
+        self.training_tasks   = args.training_tasks
+        self.testing_tasks    = args.testing_tasks
         self.task_names       = []
         self.create_batch(self.num_task)
 
@@ -108,9 +110,9 @@ class MetaTask(Dataset):
         #    If its in testing phrase, output all pre-selected testing tasks in random order  
         if not self.evaluate:
             #possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
-            possible_tasks = ['cola','mrpc','sst-2','qqp','qnli','rte','wnli'] 
+            possible_tasks = self.training_tasks
         else:
-            possible_tasks = ['squad']
+            possible_tasks = self.testing_tasks 
 
         if len(possible_tasks) < num_task:
             logger.info('Num of tasks exceed avaliable tasks, drawing tasks with replacement')
@@ -136,7 +138,7 @@ class MetaTask(Dataset):
             # 3. put into support and queries 
             self.supports.append(exam_train)
             self.queries.append(exam_test)
-        print('length of support dataloader', len(self.supports))
+        #print('length of support dataloader', len(self.supports))
             
     ###################################
     #### dataloader of Super-GLUE  ####

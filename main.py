@@ -151,7 +151,7 @@ def main():
                 acc = learner.finetune(idt[epoch], test_batch)
                 acc_all_test.append(acc)
 
-            print('Step:', step, 'Test F1:', np.mean(acc_all_test))
+            print('Step:', epoch , 'Test F1:', np.mean(acc_all_test))
             print('\n')
             random_seed(int(time.time() % 10))
 

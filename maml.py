@@ -74,7 +74,7 @@ class Learner(nn.Module):
 
             print('----Task', ids[task_id], '----')
             for i in range(0, self.inner_update_step):
-                if i % 2 == 0:
+                if i % 5 == 0:
                     print('----Training Inner Step ', i, '-----')
                     all_loss = []
                     for inner_step, batch in enumerate(support_dataloader):
@@ -140,25 +140,25 @@ class Learner(nn.Module):
         task_accs = []
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
-            if task_id == num_task-1:
-                support = task[0]
-                query = task[1]
+            support = task[0]
+            query = task[1]
 
-                self.model.to(self.device)
-                self.model.train()
-                support_dataloader = DataLoader(support, sampler=RandomSampler(support),
-                                                batch_size=self.inner_batch_size)
+            self.model.to(self.device)
+            self.model.train()
+            support_dataloader = DataLoader(support, sampler=RandomSampler(support),
+                                            batch_size=self.inner_batch_size)
 
-                inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)
+            inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)
 
-                for name, param in self.model.named_parameters():
-                    if 'classifier' not in name:  # classifier layer
-                        param.learn = False
-                    else:
-                        param.learn = True
+            for name, param in self.model.named_parameters():
+                if 'classifier' not in name:  # classifier layer
+                    param.learn = False
+                else:
+                    param.learn = True
 
-                print('----Task', idt[task_id], '----')
-                for i in range(0, self.inner_update_step_eval):
+            print('----Task', idt[task_id], '----')
+            for i in range(0, self.inner_update_step_eval):
+                if i % 2 == 0:
                     print('----Testing Inner Step ', i, '-----')
                     all_loss = []
                     for inner_step, batch in enumerate(support_dataloader):
@@ -177,29 +177,29 @@ class Learner(nn.Module):
                     # if i % 4 == 0:
                     print("Inner Loss: ", np.mean(all_loss))
 
-                print('----Testing Outer Step-----')
-                self.model.eval()
-                query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
-                query_batch = iter(query_dataloader).next()
-                query_batch = tuple(t.to(self.device) for t in query_batch)
-                q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+            print('----Testing Outer Step-----')
+            self.model.eval()
+            query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+            query_batch = iter(query_dataloader).next()
+            query_batch = tuple(t.to(self.device) for t in query_batch)
+            q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
 
-                q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
+            q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
 
-                q_loss = q_outputs[0]
-                q_logits = F.softmax(q_outputs[1], dim=1)
-                pre_label_id = torch.argmax(q_logits, dim=1)
-                pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-                q_label_id = q_label_id.detach().cpu().numpy().tolist()
+            q_loss = q_outputs[0]
+            q_logits = F.softmax(q_outputs[1], dim=1)
+            pre_label_id = torch.argmax(q_logits, dim=1)
+            pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+            q_label_id = q_label_id.detach().cpu().numpy().tolist()
 
-                acc = accuracy_score(pre_label_id, q_label_id)
-                task_accs.append(acc)
-                print('Outer Acc: ', acc)
+            acc = accuracy_score(pre_label_id, q_label_id)
+            task_accs.append(acc)
+            print('Outer Acc: ', acc)
 
-                del inner_optimizer
-                torch.cuda.empty_cache()
+            del inner_optimizer
+            torch.cuda.empty_cache()
 
-                gc.collect()
+            gc.collect()
 
         # Test forgetting
         print('----Testing Forgetting-----')

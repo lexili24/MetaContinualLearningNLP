@@ -74,23 +74,24 @@ class Learner(nn.Module):
 
             print('----Task', ids[task_id], '----')
             for i in range(0, self.inner_update_step):
-                print('----Training Inner Step ', i, '-----')
-                all_loss = []
-                for inner_step, batch in enumerate(support_dataloader):
+                if i % 2 == 0:
+                    print('----Training Inner Step ', i, '-----')
+                    all_loss = []
+                    for inner_step, batch in enumerate(support_dataloader):
 
-                    batch = tuple(t.to(self.device) for t in batch)
-                    input_ids, attention_mask, segment_ids, label_id = batch
-                    outputs = self.model(input_ids, attention_mask, segment_ids, labels=label_id)
+                        batch = tuple(t.to(self.device) for t in batch)
+                        input_ids, attention_mask, segment_ids, label_id = batch
+                        outputs = self.model(input_ids, attention_mask, segment_ids, labels=label_id)
 
-                    loss = outputs[0]
-                    loss.backward()
-                    inner_optimizer.step()
-                    inner_optimizer.zero_grad()
+                        loss = outputs[0]
+                        loss.backward()
+                        inner_optimizer.step()
+                        inner_optimizer.zero_grad()
 
-                    all_loss.append(loss.item())
+                        all_loss.append(loss.item())
 
-                # if i % 4 == 0:
-                print("Inner Loss: ", np.mean(all_loss))
+                    # if i % 4 == 0:
+                    print("Inner Loss: ", np.mean(all_loss))
 
             print('----Training Outer Step-----')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
@@ -157,24 +158,25 @@ class Learner(nn.Module):
                         param.learn = True
 
                 print('----Task', idt[task_id], '----')
-                for i in range(0, self.inner_update_step):
-                    print('----Testing Inner Step ', i, '-----')
-                    all_loss = []
-                    for inner_step, batch in enumerate(support_dataloader):
+                for i in range(0, self.inner_update_step_eval):
+                    if i % 2 == 0:
+                        print('----Testing Inner Step ', i, '-----')
+                        all_loss = []
+                        for inner_step, batch in enumerate(support_dataloader):
 
-                        batch = tuple(t.to(self.device) for t in batch)
-                        input_ids, attention_mask, segment_ids, label_id = batch
-                        outputs = self.model(input_ids, attention_mask, segment_ids, labels=label_id)
+                            batch = tuple(t.to(self.device) for t in batch)
+                            input_ids, attention_mask, segment_ids, label_id = batch
+                            outputs = self.model(input_ids, attention_mask, segment_ids, labels=label_id)
 
-                        loss = outputs[0]
-                        loss.backward()
-                        inner_optimizer.step()
-                        inner_optimizer.zero_grad()
+                            loss = outputs[0]
+                            loss.backward()
+                            inner_optimizer.step()
+                            inner_optimizer.zero_grad()
 
-                        all_loss.append(loss.item())
+                            all_loss.append(loss.item())
 
-                    # if i % 4 == 0:
-                    print("Inner Loss: ", np.mean(all_loss))
+                        # if i % 4 == 0:
+                        print("Inner Loss: ", np.mean(all_loss))
 
                 print('----Testing Outer Step-----')
                 self.model.eval()

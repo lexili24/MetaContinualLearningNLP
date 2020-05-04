@@ -36,7 +36,7 @@ def create_batch_of_tasks(ids, epoch, taskset, is_shuffle = True, batch_size = 4
     #     print('ids:',ids)
     #     yield [taskset[idxs[i]] for i in range(j, min(j + batch_size,len(taskset)))]
 
-def create_test_tasks(idt, epoch, taskset, is_shuffle = False, batch_size = 1):
+def create_test_tasks(idt, epoch, taskset, is_shuffle = False, batch_size = 3):
     idxs = list(range(0,batch_size))
     idt[epoch] = [idxs[i] for i in range(0, batch_size)]
     yield [taskset[i] for i in range(0, batch_size)]
@@ -54,7 +54,7 @@ def main():
     parser.add_argument("--num_labels", default=2, type=int,
                         help="Number of class for classification")
 
-    parser.add_argument("--epoch", default=20, type=int,
+    parser.add_argument("--epoch", default=50, type=int,
                         help="Number of outer interation")
     
     parser.add_argument("--k_spt", default=80, type=int,
@@ -75,7 +75,7 @@ def main():
     parser.add_argument("--inner_update_lr", default=5e-5, type=float,
                         help="Inner update learning rate")
     
-    parser.add_argument("--inner_update_step", default=10, type=int,
+    parser.add_argument("--inner_update_step", default=20, type=int,
                         help="Number of interation in the inner loop during train time")
 
     parser.add_argument("--inner_update_step_eval", default=10, type=int,
@@ -130,6 +130,7 @@ def main():
 
     print(test.task_names)
 
+    global_step = 0
     for epoch in range(args.epoch):
         ids = {}
         train = MetaTask(args=args, num_task = args.num_task_train, k_support=args.k_spt, 
@@ -140,11 +141,11 @@ def main():
             acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
 
-        if epoch % 5 == 0:
+        if epoch % 10 == 0:
             random_seed(123)
             print("\n-----------------Testing Mode-----------------\n")
             idt = {}
-            db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=epoch//5 + 1)
+            db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=3)
             acc_all_test = []
             for step, test_batch in enumerate(db_test):
                 acc = learner.finetune(idt[epoch], test_batch)
@@ -153,6 +154,7 @@ def main():
             print('Step:', step, 'Test F1:', np.mean(acc_all_test))
             print('\n')
             random_seed(int(time.time() % 10))
+
 
 
 if __name__ == "__main__":

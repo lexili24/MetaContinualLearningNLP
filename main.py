@@ -130,7 +130,6 @@ def main():
 
     print(test.task_names)
 
-    global_step = 0
     for epoch in range(args.epoch):
         ids = {}
         train = MetaTask(args=args, num_task = args.num_task_train, k_support=args.k_spt, 
@@ -141,21 +140,19 @@ def main():
             acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
 
-            if global_step % 5 == 0:
-                random_seed(123)
-                print("\n-----------------Testing Mode-----------------\n")
-                idt = {}
-                db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=global_step//5 + 1)
-                acc_all_test = []
-                for step, test_batch in enumerate(db_test):
-                    acc = learner.finetune(idt[epoch], test_batch)
-                    acc_all_test.append(acc)
+        if epoch % 5 == 0:
+            random_seed(123)
+            print("\n-----------------Testing Mode-----------------\n")
+            idt = {}
+            db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=epoch//5 + 1)
+            acc_all_test = []
+            for step, test_batch in enumerate(db_test):
+                acc = learner.finetune(idt[epoch], test_batch)
+                acc_all_test.append(acc)
 
-                print('Step:', step, 'Test F1:', np.mean(acc_all_test))
-                print('\n')
-                random_seed(int(time.time() % 10))
-
-            global_step += 1
+            print('Step:', step, 'Test F1:', np.mean(acc_all_test))
+            print('\n')
+            random_seed(int(time.time() % 10))
 
 
 if __name__ == "__main__":

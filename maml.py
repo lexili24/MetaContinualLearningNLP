@@ -36,7 +36,7 @@ class Learner(nn.Module):
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
         self.model.train()
 
-    def forward(self, batch_tasks):
+    def forward(self, ids, batch_tasks):
         """
         batch = [(support TensorDataset, query TensorDataset),
                  (support TensorDataset, query TensorDataset),
@@ -72,7 +72,7 @@ class Learner(nn.Module):
                 else:
                     param.learn = True
 
-            print('----Task', task_id, '----')
+            print('----Task', ids[task_id], '----')
             for i in range(0, self.inner_update_step):
                 print('----Training Inner Step ', i, '-----')
                 all_loss = []

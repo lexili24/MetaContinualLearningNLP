@@ -86,7 +86,6 @@ class Learner(nn.Module):
                 print("Inner Loss: ", np.mean(all_loss))
 
             # W_l gradient
-            self.model.to(torch.device('cpu'))
 
             print('S_Test')
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
@@ -134,6 +133,7 @@ class Learner(nn.Module):
             query = task[1]
 
             self.model.to(self.device)
+            self.model.train()
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
                                             batch_size=self.inner_batch_size)
 
@@ -159,9 +159,8 @@ class Learner(nn.Module):
                 # if i % 4 == 0:
                 print("Inner Loss: ", np.mean(all_loss))
 
-            self.model.to(torch.device('cpu'))
-
             print('----Testing Outer Step-----')
+            self.model.eval()
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
@@ -203,6 +202,6 @@ class Learner(nn.Module):
             q_label_id = q_label_id.detach().cpu().numpy().tolist()
 
             acc = accuracy_score(pre_label_id, q_label_id)
-            print("accuracy on task " + str(task_id) + " after finalizing " + str(acc))
+            print("accuracy on task " + str(task_id) + " after finalizing: " + str(acc))
 
         return np.mean(task_accs)

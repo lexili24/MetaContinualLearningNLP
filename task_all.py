@@ -26,7 +26,7 @@ import numpy as np
 import collections
 import random
 import json, pickle
-from torch.utils.data import TensorDataset, RandomSampler
+from torch.utils.data import TensorDataset, RandomSampler, random_split
 from transformers import glue_processors, superglue_processors
 from transformers import glue_output_modes, superglue_output_modes
 from transformers import squad_convert_examples_to_features
@@ -123,7 +123,8 @@ class MetaTask(Dataset):
         self.task_names = tasks
         for b in range(num_task):  ## for each task
             task = tasks[b]
-            print(task)
+            print('-'*20)
+            print(f'task {b}: {task}')
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
                 dataset = self.load_and_cache_examples_squad(self.tokenizer, self.evaluate)
@@ -132,13 +133,12 @@ class MetaTask(Dataset):
             else:
                 dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate) # map style dataset 
 
-            exam_train = dataset[:self.k_support]
-            exam_test  = dataset[self.k_support:]
+            exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
 
             # 3. put into support and queries 
             self.supports.append(exam_train)
             self.queries.append(exam_test)
-        #print('length of support dataloader', len(self.supports))
+
             
     ###################################
     #### dataloader of Super-GLUE  ####
@@ -162,7 +162,7 @@ class MetaTask(Dataset):
         processor = superglue_processors[task]()
         output_mode = superglue_output_modes[task]
         cached_downloaded_file = os.path.join(self.data_dir, 'superglue', task_data_path)
-        print(cached_downloaded_file)
+        #print(cached_downloaded_file)
 
         logger.info(f"Creating {self.k_support+self.k_query} features from superglue dataset file at {cached_downloaded_file}")
         label_list = processor.get_labels()
@@ -292,7 +292,7 @@ class MetaTask(Dataset):
         processor = glue_processors[task]()
         output_mode = glue_output_modes[task]
         cached_downloaded_file = os.path.join(self.data_dir, 'glue_data', task_data_path)
-        print(cached_downloaded_file)
+        #print(cached_downloaded_file)
 
         logger.info(f"Creating {self.k_support+self.k_query} features from dataset file at {cached_downloaded_file}")
         label_list = processor.get_labels()
@@ -321,7 +321,6 @@ class MetaTask(Dataset):
             all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
         elif output_mode == "regression":
             all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
-
         dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
         return dataset
 

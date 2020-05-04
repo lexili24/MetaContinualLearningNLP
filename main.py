@@ -23,13 +23,23 @@ def random_seed(value):
     np.random.seed(value)
     random.seed(value)
 
-def create_batch_of_tasks(ids, taskset, is_shuffle = True, batch_size = 4):
+def create_batch_of_tasks(ids, epoch, taskset, is_shuffle = True, batch_size = 4):
     idxs = list(range(0,len(taskset)))
     if is_shuffle:
         random.shuffle(idxs)
-    for i in range(0,len(idxs), batch_size):
-        ids[i] = [idxs[i] for i in range(i, min(i + batch_size,len(taskset)))]
-        yield [taskset[idxs[i]] for i in range(i, min(i + batch_size,len(taskset)))]
+    batch_task = np.random.choice(idxs, batch_size, replace = False)
+    ids[epoch] = [idxs[batch_task[i]] for i in range(0,len(batch_task))]
+    yield [taskset[batch_task[i]] for i in range(0, len(batch_task))]
+        
+    # for j in range(0,len(idxs), batch_size):
+    #     ids[j] = [idxs[i] for i in range(j, min(j + batch_size,len(taskset)))]
+    #     print('ids:',ids)
+    #     yield [taskset[idxs[i]] for i in range(j, min(j + batch_size,len(taskset)))]
+
+def create_test_tasks(idt, epoch, taskset, is_shuffle = False, batch_size = 1):
+    idxs = list(range(0,batch_size))
+    idt[epoch] = [idxs[i] for i in range(0, batch_size)]
+    yield [taskset[i] for i in range(0, batch_size)]
 
 def main():
     
@@ -44,7 +54,7 @@ def main():
     parser.add_argument("--num_labels", default=2, type=int,
                         help="Number of class for classification")
 
-    parser.add_argument("--epoch", default=5, type=int,
+    parser.add_argument("--epoch", default=20, type=int,
                         help="Number of outer interation")
     
     parser.add_argument("--k_spt", default=80, type=int,
@@ -122,28 +132,27 @@ def main():
 
     global_step = 0
     for epoch in range(args.epoch):
-
         ids = {}
         train = MetaTask(args=args, num_task = args.num_task_train, k_support=args.k_spt, 
                     k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
-        db = create_batch_of_tasks(ids, train, is_shuffle = True, batch_size = args.outer_batch_size)
-
+        db = create_batch_of_tasks(ids, epoch, train, is_shuffle = True, batch_size = args.outer_batch_size)
         for step, task_batch in enumerate(db):
-            acc = learner(ids[step], task_batch)
+            print("\n-----------------Training Mode-----------------\n")
+            acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
 
             if global_step % 5 == 0:
                 random_seed(123)
                 print("\n-----------------Testing Mode-----------------\n")
-                db_test = create_batch_of_tasks(ids, test, is_shuffle=False, batch_size=global_step%5 + 1)
+                idt = {}
+                db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=global_step//5 + 1)
                 acc_all_test = []
-
-                for test_batch in db_test:
-                    acc = learner.finetune(test_batch)
+                for step, test_batch in enumerate(db_test):
+                    acc = learner.finetune(idt[epoch], test_batch)
                     acc_all_test.append(acc)
 
                 print('Step:', step, 'Test F1:', np.mean(acc_all_test))
-
+                print('\n')
                 random_seed(int(time.time() % 10))
 
             global_step += 1

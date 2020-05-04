@@ -68,7 +68,7 @@ def main():
     parser.add_argument("--inner_update_step", default=10, type=int,
                         help="Number of interation in the inner loop during train time")
 
-    parser.add_argument("--inner_update_step_eval", default=40, type=int,
+    parser.add_argument("--inner_update_step_eval", default=10, type=int,
                         help="Number of interation in the inner loop during test time")
     
     parser.add_argument("--num_task_train", default=4, type=int,
@@ -135,7 +135,7 @@ def main():
             if global_step % 5 == 0:
                 random_seed(123)
                 print("\n-----------------Testing Mode-----------------\n")
-                db_test = create_batch_of_tasks(test, is_shuffle=False, batch_size=global_step%5 + 1)
+                db_test = create_batch_of_tasks(ids, test, is_shuffle=False, batch_size=global_step%5 + 1)
                 acc_all_test = []
 
                 for test_batch in db_test:

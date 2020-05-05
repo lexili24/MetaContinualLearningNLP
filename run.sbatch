@@ -10,12 +10,12 @@ module load cuda/10.0.130
 module load gcc/6.3.0
 
 # Replace with your NetID
-NETID=dj1057
+NETID=jw5728
 source activate /scratch/${NETID}/nlu/env
 export PYTORCH_TRANSFORMERS_CACHE=/scratch/${NETID}/nlu/cache
 conda install pytorch torchvision -c pytorch
 
-cd /home/${NETID}/NLU
+cd /home/${NETID}/nlu/project/NLUProject
 export PYTHONPATH=/scratch/${NETID}/nlu/code/transformers/src:$PYTHONPATH
 
 python main.py

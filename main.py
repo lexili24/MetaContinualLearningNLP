@@ -54,7 +54,7 @@ def main():
     parser.add_argument("--num_labels", default=2, type=int,
                         help="Number of class for classification")
 
-    parser.add_argument("--epoch", default=50, type=int,
+    parser.add_argument("--epoch", default=200, type=int,
                         help="Number of outer interation")
     
     parser.add_argument("--k_spt", default=80, type=int,

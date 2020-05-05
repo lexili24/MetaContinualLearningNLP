@@ -12,6 +12,7 @@ logger.setLevel(logging.CRITICAL)
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 from reptile import Learner
 from task_all import MetaTask
+#from task import MetaTask
 import random
 import numpy as np
 
@@ -33,8 +34,8 @@ def main():
     
     parser = argparse.ArgumentParser()
     
-    # parser.add_argument("--data", default='dataset.json', type=str,
-    #                     help="Path to dataset file")
+    parser.add_argument("--data", default='dataset.json', type=str,
+                        help="Path to dataset file")
     
     parser.add_argument("--bert_model", default='bert-base-uncased', type=str,
                         help="Path to bert model")
@@ -92,62 +93,77 @@ def main():
                         "be truncated to this length.")
     
     parser.add_argument("--training_tasks", default=['cola','mrpc','sst-2','qqp'], type=list,
-                    help="List of all meta training tasks list.")
+                    #choices = ['cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'snli', 'sst-2', 'sts-b', 'wnli'] 
+                    help="Define meta-training tasks list.")
     
     parser.add_argument("--testing_tasks", default=['qnli','rte','wnli'], type=list,
-                help="List of all meta testing tasks list.")
+                help="Define meta-testing tasks list.")
 
+    parser.add_argument("--evaluate_whole_set", default=False, type=bool,
+            help="Indicator on whether evaluate entire dev set during meta-testing phase")
 
     args = parser.parse_args()
     ### NOTE: uncomment below if you are using default dataset 
-    # reviews = json.load(open(args.data))
-    # low_resource_domains = ["office_products", "automotive", "computer_&_video_games"]
+    reviews = json.load(open(args.data))
+    low_resource_domains = ["office_products", "automotive", "computer_&_video_games"]
 
-    # train_examples = [r for r in reviews if r['domain'] not in low_resource_domains]
-    # test_examples = [r for r in reviews if r['domain'] in low_resource_domains]
-    # print(len(train_examples), len(test_examples))
+    train_examples = [r for r in reviews if r['domain'] not in low_resource_domains]
+    test_examples = [r for r in reviews if r['domain'] in low_resource_domains]
+    #print(len(train_examples), len(test_examples))
+
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case = True)
     learner = Learner(args)
     
+    # ORG
     # test = MetaTask(test_examples, num_task = args.num_task_test, k_support=args.k_spt, 
     #                 k_query=args.k_qry, tokenizer = tokenizer)
 
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt, 
-                    k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = False)
+                    k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = True)
 
-    print(test.task_names)
+    #print(test.task_names)
 
-    global_step = 0
-    for epoch in range(args.epoch):
+    # global_step = 0
+    # for epoch in range(args.epoch):
 
+    #     # ORG 
+    #     # train = MetaTask(train_examples, num_task = args.num_task_test, k_support=args.k_spt, 
+    #     #             k_query=args.k_qry, tokenizer = tokenizer)
 
-        train = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
-                    k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
+    #     train = MetaTask(args=args, num_task = args.num_task_test, k_support=args.k_spt, 
+    #                 k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
 
-        db = create_batch_of_tasks(train, is_shuffle = True, batch_size = args.outer_batch_size)
+    #     db = create_batch_of_tasks(train, is_shuffle = True, batch_size = args.outer_batch_size)
 
-        for step, task_batch in enumerate(db):
+    #     for step, task_batch in enumerate(db):
+            # print('total batch', len(task_batch))
+            # print('in each batch',len(task_batch[0]))
+            # print(task_batch[0])
+            # print('--------------')
+            # print('in each batch')
+            
+            # for task_id, task in enumerate(task_batch):
+            #     print('this should output 2 support & query,', len(task))
+            #acc = learner(task_batch)
+            #break
+    #         print('Step:', step, '\ttraining Acc:', acc)
 
-            acc = learner(task_batch)
+    #         if global_step % 20 == 0:
+    #             random_seed(123)
+    #             print("\n-----------------Testing Mode-----------------\n")
+    #             db_test = create_batch_of_tasks(test, is_shuffle = False, batch_size = 1)
+    #             acc_all_test = []
 
-            print('Step:', step, '\ttraining Acc:', acc)
+    #             for test_batch in db_test:
+    #                 acc = learner(test_batch, training = False)
+    #                 acc_all_test.append(acc)
 
-            if global_step % 20 == 0:
-                random_seed(123)
-                print("\n-----------------Testing Mode-----------------\n")
-                db_test = create_batch_of_tasks(test, is_shuffle = False, batch_size = 1)
-                acc_all_test = []
+    #             print('Step:', step, 'Test F1:', np.mean(acc_all_test))
 
-                for test_batch in db_test:
-                    acc = learner(test_batch, training = False)
-                    acc_all_test.append(acc)
+    #             random_seed(int(time.time() % 10))
 
-                print('Step:', step, 'Test F1:', np.mean(acc_all_test))
-
-                random_seed(int(time.time() % 10))
-
-            global_step += 1
+    #         global_step += 1
             
 if __name__ == "__main__":
     main() 

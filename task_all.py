@@ -98,6 +98,7 @@ class MetaTask(Dataset):
         self.training_tasks   = args.training_tasks
         self.testing_tasks    = args.testing_tasks
         self.task_names       = []
+        self.evaluate_whole   = args.evaluate_whole_set
         self.create_batch(self.num_task)
 
     def create_batch(self, num_task):
@@ -108,8 +109,7 @@ class MetaTask(Dataset):
         self.queries = []  # query set
         # 1. randomly select num_task GLUE + SuperGLUe tasks
         #    If its in testing phrase, output all pre-selected testing tasks in random order  
-        if not self.evaluate:
-            #possible_tasks = list(glue_processors.keys()) + list(superglue_processors.keys())
+        if not self.evaluate: # training
             possible_tasks = self.training_tasks
         else:
             possible_tasks = self.testing_tasks 
@@ -127,13 +127,19 @@ class MetaTask(Dataset):
             print(f'task {b}: {task}')
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
-                dataset = self.load_and_cache_examples_squad(self.tokenizer, self.evaluate)
+                dataset = self.load_and_cache_examples_squad(self.tokenizer, self.evaluate, self.evaluate_whole)
             elif task in glue_processors.keys():
-                dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate) # map style dataset 
+                dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
             else:
-                dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate) # map style dataset 
+                dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
 
-            exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
+            if self.evaluate and self.evaluate_whole:  # evaluate entire dev set during meta-testing
+                support = int(len(dataset)*(self.k_support/(self.k_support + self.k_query)))
+                query = len(dataset) - support
+                #print(f'size: support {support}, query {query}, entire dataset {len(dataset)}')
+                exam_train, exam_test = random_split(dataset, [support, query])
+            else:
+                exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
 
             # 3. put into support and queries 
             self.supports.append(exam_train)
@@ -143,7 +149,7 @@ class MetaTask(Dataset):
     ###################################
     #### dataloader of Super-GLUE  ####
     ###################################
-    def load_and_cache_examples_superglue(self, task, tokenizer, evaluate=False):
+    def load_and_cache_examples_superglue(self, task, tokenizer, evaluate=False, evaluate_whole_set = False):
         '''
         Heavily insipired from official loading and cache scripts from Huggingface Transformer func load_and_cache_examples
         https://github.com/huggingface/transformers/blob/master/examples/run_glue.py#L334
@@ -176,6 +182,9 @@ class MetaTask(Dataset):
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)
 
+        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
+            selected_examples = examples
+
         features = superglue_convert_examples_to_features(
             selected_examples, tokenizer, max_length=self.max_seq_length, 
             task = task,label_list=label_list, output_mode=output_mode, model_type = self.bert_model
@@ -195,7 +204,6 @@ class MetaTask(Dataset):
                 all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.long), features))
             elif output_mode == "regression":
                 all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.float), features))
-                #all_labels = torch.tensor([f.label for f in features[0]], dtype=torch.float)
 
             dataset = ( TensorDataset(all_input_ids[0], all_attention_mask[0], all_token_type_ids[0], all_labels[0]), 
                         TensorDataset(all_input_ids[1], all_attention_mask[1], all_token_type_ids[1], all_labels[1]) )
@@ -205,11 +213,7 @@ class MetaTask(Dataset):
             all_attention_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
             all_token_type_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
             all_span_1_mask = torch.tensor([f.span_1_mask for f in features], dtype=torch.long)
-            try: 
-                all_span_1_text = torch.tensor([f.span_1_text for f in features])
-            except:
-                print('all_span_1_text', features[0].span_1_text)
-                return 
+            all_span_1_text = torch.tensor([f.span_1_text for f in features])
             all_span_2_mask = torch.tensor([f.span_2_mask for f in features], dtype=torch.long)
             all_span_2_text = torch.tensor([f.span_2_text for f in features]) 
 
@@ -222,7 +226,7 @@ class MetaTask(Dataset):
                                     all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text
                                     )
 
-        else: #for 'boolq', 'cb', 'rte'
+        else: #for ['boolq', 'cb', 'rte']
             all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
             all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
             all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
@@ -236,7 +240,7 @@ class MetaTask(Dataset):
         return dataset
 
     ### dataloader for SQuaD:
-    def load_and_cache_examples_squad(self, tokenizer, evaluate=False):
+    def load_and_cache_examples_squad(self, tokenizer, evaluate=False, evaluate_whole_set = False):
         '''
         Heavily insipired from official loading and cache scripts from Huggingface Transformer func load_and_cache_examples
         https://github.com/huggingface/transformers/blob/master/examples/run_squad.py
@@ -256,6 +260,9 @@ class MetaTask(Dataset):
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)
 
+        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
+            selected_examples = examples
+
         features, dataset = squad_convert_examples_to_features(
             examples=selected_examples,
             tokenizer=tokenizer,
@@ -274,7 +281,7 @@ class MetaTask(Dataset):
         return dataset
 
     # dataloader of GLUE 
-    def load_and_cache_examples_glue(self, task, tokenizer, evaluate=False):
+    def load_and_cache_examples_glue(self, task, tokenizer, evaluate=False, evaluate_whole_set=False):
         '''
         Heavily insipired from official loading and cache scripts from Huggingface Transformer func load_and_cache_examples
         https://github.com/huggingface/transformers/blob/master/examples/run_glue.py#L334
@@ -301,10 +308,14 @@ class MetaTask(Dataset):
                 processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
             )
 
+
         if len(examples) < self.k_query + self.k_support:
             selected_examples = random.choices(examples, k = self.k_support + self.k_query)
         else:
             selected_examples = random.sample(examples, self.k_support + self.k_query)
+
+        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
+            selected_examples = examples
 
         features = glue_convert_examples_to_features(
             selected_examples, tokenizer, max_length=self.max_seq_length, label_list=label_list, output_mode=output_mode,

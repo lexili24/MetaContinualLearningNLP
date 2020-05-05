@@ -78,7 +78,7 @@ def main():
     parser.add_argument("--inner_update_step", default=5, type=int,
                         help="Number of interation in the inner loop during train time")
 
-    parser.add_argument("--inner_update_step_eval", default=3, type=int,
+    parser.add_argument("--inner_update_step_eval", default=5, type=int,
                         help="Number of interation in the inner loop during test time")
     
     parser.add_argument("--num_task_train", default=4, type=int,

@@ -75,10 +75,10 @@ def main():
     parser.add_argument("--inner_update_lr", default=5e-5, type=float,
                         help="Inner update learning rate")
     
-    parser.add_argument("--inner_update_step", default=20, type=int,
+    parser.add_argument("--inner_update_step", default=5, type=int,
                         help="Number of interation in the inner loop during train time")
 
-    parser.add_argument("--inner_update_step_eval", default=10, type=int,
+    parser.add_argument("--inner_update_step_eval", default=3, type=int,
                         help="Number of interation in the inner loop during test time")
     
     parser.add_argument("--num_task_train", default=4, type=int,
@@ -126,7 +126,7 @@ def main():
     #                 k_query=args.k_qry, tokenizer = tokenizer)
     
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt, 
-                    k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = False)
+                    k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = True)
 
     print(test.task_names)
 

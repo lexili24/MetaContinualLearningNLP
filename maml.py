@@ -74,7 +74,7 @@ class Learner(nn.Module):
 
             print('----Task', ids[task_id], '----')
             for i in range(0, self.inner_update_step):
-                if i % 5 == 0:
+                if i % 1 == 0:
                     print('----Training Inner Step ', i, '-----')
                     all_loss = []
                     for inner_step, batch in enumerate(support_dataloader):
@@ -158,7 +158,7 @@ class Learner(nn.Module):
 
             print('----Task', idt[task_id], '----')
             for i in range(0, self.inner_update_step_eval):
-                if i % 2 == 0:
+                if i % 1 == 0:
                     print('----Testing Inner Step ', i, '-----')
                     all_loss = []
                     for inner_step, batch in enumerate(support_dataloader):

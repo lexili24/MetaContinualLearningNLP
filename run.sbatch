@@ -18,4 +18,4 @@ conda install pytorch torchvision -c pytorch
 cd /home/${NETID}/nlu/project/NLUProject
 export PYTHONPATH=/scratch/${NETID}/nlu/code/transformers/src:$PYTHONPATH
 
-python main.py
+python main.py --data_dir /scratch/jw5728/nlu/data

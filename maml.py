@@ -179,7 +179,7 @@ class Learner(nn.Module):
 
             print('----Testing Outer Step-----')
             self.model.eval()
-            query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+            query_dataloader = DataLoader(query, sampler=None, batch_size=16)
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
@@ -206,7 +206,7 @@ class Learner(nn.Module):
         for task_id, task in enumerate(batch_tasks):
             query = task[1]
             self.model.to(self.device)
-            query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+            query_dataloader = DataLoader(query, sampler=None, batch_size=16)
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch

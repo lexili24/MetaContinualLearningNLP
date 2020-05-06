@@ -104,10 +104,14 @@ def main():
                         "be truncated to this length.")
     
     parser.add_argument("--training_tasks", default=['cola','mrpc','sst-2','qqp'], type=list,
-                    help="List of all meta training tasks list.")
+                    #choices = ['cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'snli', 'sst-2', 'sts-b', 'wnli'] 
+                    help="Define meta-training tasks list.")
     
     parser.add_argument("--testing_tasks", default=['qnli','rte','wnli'], type=list,
-                help="List of all meta testing tasks list.")
+                help="Define meta-testing tasks list.")
+
+    parser.add_argument("--evaluate_whole_set", default=True, type=bool,
+            help="Indicator on whether evaluate entire dev set during meta-testing phase")
 
 
     args = parser.parse_args()

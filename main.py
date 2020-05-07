@@ -54,7 +54,7 @@ def main():
     parser.add_argument("--num_labels", default=2, type=int,
                         help="Number of class for classification")
 
-    parser.add_argument("--epoch", default=200, type=int,
+    parser.add_argument("--epoch", default=150, type=int,
                         help="Number of outer interation")
     
     parser.add_argument("--k_spt", default=80, type=int,
@@ -145,7 +145,7 @@ def main():
             acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
 
-        if epoch % 10 == 0:
+        if epoch % 5 == 0:
             random_seed(123)
             print("\n-----------------Testing Mode-----------------\n")
             idt = {}

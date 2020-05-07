@@ -128,10 +128,10 @@ def main():
     
     # test = MetaTask(test_examples, num_task = args.num_task_test, k_support=args.k_spt, 
     #                 k_query=args.k_qry, tokenizer = tokenizer)
-    
+    print('start reading test data',flush=True)
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt, 
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = True)
-
+    print('finish reading test data',flush=True) 
     print(test.task_names)
 
     global_step = 0
@@ -141,7 +141,7 @@ def main():
                     k_query=args.k_qry, tokenizer = tokenizer, max_seq_length = args.max_seq_length, evaluate = False)
         db = create_batch_of_tasks(ids, epoch, train, is_shuffle = True, batch_size = args.outer_batch_size)
         for step, task_batch in enumerate(db):
-            print("\n-----------------Training Mode-----------------\n")
+            print("\n-----------------Training Mode-----------------\n",flush = True)
             acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
 

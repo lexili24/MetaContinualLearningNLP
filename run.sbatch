@@ -15,7 +15,7 @@ source activate /scratch/${NETID}/nlu/env
 export PYTORCH_TRANSFORMERS_CACHE=/scratch/${NETID}/nlu/cache
 conda install pytorch torchvision -c pytorch
 
-cd /home/${NETID}/nlu/project/NLUProject
+cd /scratch/${NETID}/nlu/project/NLUProject
 export PYTHONPATH=/scratch/${NETID}/nlu/code/transformers/src:$PYTHONPATH
 
 python main.py --data_dir /scratch/jw5728/nlu/data

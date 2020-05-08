@@ -127,15 +127,7 @@ class Learner(nn.Module):
 
         return np.mean(task_accs)
 
-    def finetune(self, idt, batch_tasks):
-        """
-        batch = [(support TensorDataset, query TensorDataset),
-                 (support TensorDataset, query TensorDataset),
-                 (support TensorDataset, query TensorDataset),
-                 (support TensorDataset, query TensorDataset)]
-
-        # support = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids)
-        """
+    def finetune(self, idt, batch_tasks):   
         task_accs = []
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
@@ -143,21 +135,22 @@ class Learner(nn.Module):
             # query = task[1]
             self.model.to(self.device)
             self.model.train()
+            # Random Initialize W_ for speciffic task
+            torch.nn.init.xavier_uniform_(self.model.classifier.weight.data)
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
                                             batch_size=self.inner_batch_size)
-
             inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)
 
-            for name, param in self.model.named_parameters():
-                if 'classifier' not in name:  # classifier layer
-                    param.learn = False
-                else:
-                    param.learn = True
+            # NOTE: Below is based on the MRCL paper, only train PLN
+            # for name, param in self.model.named_parameters():
+            #     if 'classifier' not in name:  # classifier layer
+            #         param.learn = False
+            #     else:
+            #         param.learn = True
 
             print('----Task', idt[task_id], '----')
             for i in range(0, self.inner_update_step_eval):
                 print('----Testing Inner Step ', i, '-----')
-                all_loss = []
                 for inner_step, batch in enumerate(support_dataloader):
                     batch = tuple(t.to(self.device) for t in batch)
                     input_ids, attention_mask, segment_ids, label_id = batch
@@ -167,26 +160,8 @@ class Learner(nn.Module):
                     loss.backward()
                     inner_optimizer.step()
                     all_loss.append(loss.item())
-                # if i % 4 == 0:
-                print("Inner Loss: ", np.mean(all_loss))
-
-            # print('----Testing Outer Step-----')
-            # self.model.eval()
-            # query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-            # for i, batch in enumerate(query_dataloader):
-            #     query_batch = iter(query_dataloader).next()
-            #     query_batch = tuple(t.to(self.device) for t in query_batch)
-            #     q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-            #     q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
-            #     q_loss = q_outputs[0]
-            #     q_logits = F.softmax(q_outputs[1], dim=1)
-            #     pre_label_id = torch.argmax(q_logits, dim=1)
-            #     pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-            #     q_label_id = q_label_id.detach().cpu().numpy().tolist()
-            #     acc = accuracy_score(pre_label_id, q_label_id)      
-            # task_accs.append(acc)
-            # print('Outer Acc: ', acc)
-
+                    print("Inner Loss: ", loss)
+            
             del inner_optimizer
             torch.cuda.empty_cache()
             gc.collect()
@@ -209,12 +184,10 @@ class Learner(nn.Module):
                     q_loss = q_outputs[0]
                     q_logits = F.softmax(q_outputs[1], dim=1)
                     pre_label_id = torch.argmax(q_logits, dim=1)
-                    #pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-                    #q_label_id = q_label_id.detach().cpu().numpy().tolist()
                     total += q_label_id.size(0)
                     correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()
                 acc = correct/total
-                #acc = accuracy_score(pre_label_id, q_label_id)
+                task_accs.append(acc)
                 print("accuracy on task " + str(task_id) + " after finalizing: " + str(acc))
                 self.model.to(torch.device('cpu'))
 

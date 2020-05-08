@@ -144,7 +144,7 @@ def main():
             print("\n-----------------Training Mode-----------------\n",flush = True)
             acc = learner(ids[epoch], task_batch)
             print('Step:', step, '\ttraining Acc:', acc)
-
+        del train
         if epoch % 5 == 0:
             random_seed(123)
             print("\n-----------------Testing Mode-----------------\n")

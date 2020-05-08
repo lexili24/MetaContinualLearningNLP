@@ -63,7 +63,7 @@ def main():
     parser.add_argument("--k_qry", default=20, type=int,
                         help="Number of query samples per task")
 
-    parser.add_argument("--outer_batch_size", default=2, type=int,
+    parser.add_argument("--outer_batch_size", default=4, type=int,
                         help="Batch of task size")
     
     parser.add_argument("--inner_batch_size", default=12, type=int,

@@ -161,7 +161,7 @@ class Learner(nn.Module):
                     loss = outputs[0]
                     loss.backward()
                     inner_optimizer.step()
-                    all_loss.append(loss)
+                    all_loss.append(loss.item())
                 print("Inner Loss on support set: ", np.mean(all_loss))
 
             del inner_optimizer

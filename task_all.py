@@ -135,7 +135,8 @@ class MetaTask(Dataset):
             
             if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
                 exam_test = dataset # dev set 
-                exam_train = RandomSampler(train_dataset, replacement=True, num_samples = self.meta_testing_size)
+                #exam_train = RandomSampler(train_dataset, replacement=True, num_samples = self.meta_testing_size)
+                exam_train = train_dataset
             else:
                 exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
 

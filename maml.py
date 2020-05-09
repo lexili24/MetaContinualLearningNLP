@@ -137,7 +137,7 @@ class Learner(nn.Module):
             # Random Initialize W_ for speciffic task
             torch.nn.init.xavier_uniform_(self.model.classifier.weight.data)
             
-            support_dataloader = DataLoader(support, sampler=RandomSampler(support),
+            support_dataloader = DataLoader(support, sampler=RandomSampler(support, replacement=True, num_samples = self.meta_testing_size),
                                             batch_size=self.inner_batch_size)
             inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)
 

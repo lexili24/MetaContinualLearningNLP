@@ -357,7 +357,7 @@ class MetaTask(Dataset):
 
     def __len__(self):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
-        return self.num_task
+        return self.num_task_train
     
     def get_tasks(self):
         return self.tasks

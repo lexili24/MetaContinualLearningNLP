@@ -30,6 +30,7 @@ class Learner(nn.Module):
         self.inner_update_step = args.inner_update_step
         self.inner_update_step_eval = args.inner_update_step_eval
         self.bert_model = args.bert_model
+        self.meta_testing_size = args.meta_testing_size
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.model = BertForSequenceClassification.from_pretrained(self.bert_model, num_labels=self.num_labels)

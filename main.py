@@ -117,6 +117,9 @@ def main():
     parser.add_argument("--evaluate_whole_set", default=True, type=bool,
                         help="Indicator on whether evaluate entire dev set during meta-testing phase")
 
+    parser.add_argument("--meta_testing_size", default=100, type=int,
+            help="Specifiy number of training samples to draw to feed into meta-testing.")
+
     args = parser.parse_args()
     # NOTE: uncomment below if you are using default dataset
     # reviews = json.load(open(args.data))
@@ -136,7 +139,7 @@ def main():
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=True)
     print('finish reading test data', flush=True)
     print(test.task_names)
-
+    print('meta testing training samples', args.meta_testing_size)
     global_step = 0
     for epoch in range(args.epoch):
         ids = []
@@ -149,6 +152,7 @@ def main():
         acc = learner(ids, task_batch)
         print('Step:', epoch, '\tAvg Acc in query set:', acc)
         del train
+        del db
 
         if epoch % 5 == 0:
             random_seed(123)
@@ -161,6 +165,7 @@ def main():
             print('Step:', epoch, 'Test F1:', np.mean(acc))
             print('\n')
             random_seed(int(time.time() % 10))
+        del db_test
 
 
 if __name__ == "__main__":

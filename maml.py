@@ -97,7 +97,6 @@ class Learner(nn.Module):
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-
             q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
 
             for name, param in self.model.named_parameters():
@@ -137,6 +136,7 @@ class Learner(nn.Module):
             self.model.train()
             # Random Initialize W_ for speciffic task
             torch.nn.init.xavier_uniform_(self.model.classifier.weight.data)
+            
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
                                             batch_size=self.inner_batch_size)
             inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)

@@ -99,16 +99,21 @@ def main():
     parser.add_argument("--testing_tasks", default=['qnli','rte','wnli'], type=list,
                 help="Define meta-testing tasks list.")
 
-    parser.add_argument("--evaluate_whole_set", default=False, type=bool,
+    parser.add_argument("--evaluate_whole_set", default=True, type=bool,
             help="Indicator on whether evaluate entire dev set during meta-testing phase")
+
+    parser.add_argument("--meta_testing_size", default=100, type=int,
+            help="Specifiy number of training samples to draw to feed into meta-testing.")
+
+    
 
     args = parser.parse_args()
     ### NOTE: uncomment below if you are using default dataset 
-    reviews = json.load(open(args.data))
-    low_resource_domains = ["office_products", "automotive", "computer_&_video_games"]
+    # reviews = json.load(open(args.data))
+    # low_resource_domains = ["office_products", "automotive", "computer_&_video_games"]
 
-    train_examples = [r for r in reviews if r['domain'] not in low_resource_domains]
-    test_examples = [r for r in reviews if r['domain'] in low_resource_domains]
+    # train_examples = [r for r in reviews if r['domain'] not in low_resource_domains]
+    # test_examples = [r for r in reviews if r['domain'] in low_resource_domains]
     #print(len(train_examples), len(test_examples))
 
 
@@ -121,7 +126,7 @@ def main():
 
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt, 
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate = True)
-
+    db = create_batch_of_tasks(test, is_shuffle = True, batch_size = args.outer_batch_size)
     #print(test.task_names)
 
     # global_step = 0

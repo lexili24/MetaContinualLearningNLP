@@ -41,7 +41,7 @@ from transformers.data.processors.squad import SquadV2Processor
 
 # USAGE: 
 # INPUT:
-# ORG:  test = MetaTask(test_examples, num_task = args.num_task_test, k_support=args.k_spt, 
+# ORG:  test = MetaTask(test_examples, num_task = args.num_task_test, k_support=g.k_spt, 
 #                    k_query=args.k_qry, tokenizer = tokenizer)
 
 # NOW:  test = MetaTask(num_task = args.num_task_test, k_support=args.k_spt, 
@@ -83,7 +83,7 @@ class MetaTask(Dataset):
         :param evaluate: indicate whether the dataset is from training/ evaluate sets
         """
 
-        self.num_task         = num_task
+        self.num_task_train   = num_task
         self.k_support        = k_support
         self.k_query          = k_query
         self.tokenizer        = tokenizer
@@ -97,47 +97,45 @@ class MetaTask(Dataset):
         self.max_query_length = args.max_query_length
         self.training_tasks   = args.training_tasks
         self.testing_tasks    = args.testing_tasks
-        self.task_names       = []
         self.evaluate_whole   = args.evaluate_whole_set
-        self.create_batch(self.num_task)
+        self.meta_testing_size= args.meta_testing_size
+        self.create_batch(self.num_task_train)
+        self.tasks            = []
 
-    def create_batch(self, num_task):
+    def create_batch(self, train_num_task):
         '''
         Randomly select number of examples from each task into supports (meta training dataset) and queries (meta evaluating dataset)
         '''
         self.supports = []  # support set
         self.queries = []  # query set
-        # 1. randomly select num_task GLUE + SuperGLUe tasks
-        #    If its in testing phrase, output all pre-selected testing tasks in random order  
+        # 1. randomly select num_task GLUE + SuperGlue tasks
+
         if not self.evaluate: # training
-            possible_tasks = self.training_tasks
-        else:
-            possible_tasks = self.testing_tasks 
+            if len(self.training_tasks) < train_num_task:
+                logger.info('Num of tasks exceed avaliable tasks, drawing tasks with replacement')
+                self.tasks = random.choices(self.training_tasks, k = train_num_task)
+            else:
+                self.tasks = random.sample(self.training_tasks, train_num_task) # select k unique tasks
+        else: 
+            self.tasks = self.testing_tasks # testing phase all tasks should be inorder 
 
-        if len(possible_tasks) < num_task:
-            logger.info('Num of tasks exceed avaliable tasks, drawing tasks with replacement')
-            tasks = random.choices(possible_tasks, k = num_task)
-        else:
-            tasks = random.sample(possible_tasks, num_task) # select k unique tasks
-
-        self.task_names = tasks
-        for b in range(num_task):  ## for each task
-            task = tasks[b]
+        for b, task in enumerate(self.tasks):  ## for each task
             print('-'*20)
             print(f'task {b}: {task}')
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
-                dataset = self.load_and_cache_examples_squad(self.tokenizer, self.evaluate, self.evaluate_whole)
+                dataset = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
+                if self.evaluate: train_dataset = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
             elif task in glue_processors.keys():
                 dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
+                if self.evaluate: train_dataset = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
             else:
                 dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
-
-            if self.evaluate and self.evaluate_whole:  # evaluate entire dev set during meta-testing
-                support = int(len(dataset)*(self.k_support/(self.k_support + self.k_query)))
-                query = len(dataset) - support
-                #print(f'size: support {support}, query {query}, entire dataset {len(dataset)}')
-                exam_train, exam_test = random_split(dataset, [support, query])
+                if self.evaluate: train_dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
+            
+            if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
+                exam_test = dataset # dev set 
+                exam_train = RandomSampler(train_dataset, replacement=True, num_samples = self.meta_testing_size)
             else:
                 exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
 
@@ -301,38 +299,55 @@ class MetaTask(Dataset):
         cached_downloaded_file = os.path.join(self.data_dir, 'glue_data', task_data_path)
         #print(cached_downloaded_file)
 
-        logger.info(f"Creating {self.k_support+self.k_query} features from dataset file at {cached_downloaded_file}")
-        label_list = processor.get_labels()
-
-        examples = (
-                processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
-            )
-
-
-        if len(examples) < self.k_query + self.k_support:
-            selected_examples = random.choices(examples, k = self.k_support + self.k_query)
-        else:
-            selected_examples = random.sample(examples, self.k_support + self.k_query)
-
-        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
-            selected_examples = examples
-
-        features = glue_convert_examples_to_features(
-            selected_examples, tokenizer, max_length=self.max_seq_length, label_list=label_list, output_mode=output_mode,
+        cached_features_file = os.path.join(
+        self.data_dir,
+        'glue_data',
+        "cached_{}_{}_{}_{}".format(
+            "dev" if evaluate else "train",
+            str(self.bert_model),
+            str(self.max_seq_length),
+            str(task),
+            ),
         )
+        if os.path.exists(cached_features_file):
+            logger.info("Loading features from cached file %s", cached_features_file)
+            features = torch.load(cached_features_file)
+
+        else: 
+            logger.info(f"Creating features from dataset file at {cached_downloaded_file}")
+            label_list = processor.get_labels()
+
+            examples = (processor.get_dev_examples(cached_downloaded_file) if evaluate 
+                       else processor.get_train_examples(cached_downloaded_file))
+
+            features = glue_convert_examples_to_features(
+                examples, tokenizer, max_length=self.max_seq_length, label_list=label_list, output_mode=output_mode,)
+
+            if self.local_rank in [-1, 0]:
+                logger.info("Saving features into cached file %s", cached_features_file)
+                torch.save(features, cached_features_file)
 
         if self.local_rank == 0 and not evaluate:
             torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
+        if len(features) < self.k_query + self.k_support:
+            selected_features = random.choices(features, k = self.k_support + self.k_query)
+        else:
+            selected_features = random.sample(features, self.k_support + self.k_query)
+
+        if evaluate and evaluate_whole_set: # extracting entire dev set 
+            selected_features = features
+
         # Convert to Tensors and build dataset
-        all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-        all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
-        all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+        all_input_ids = torch.tensor([f.input_ids for f in selected_features], dtype=torch.long)
+        all_attention_mask = torch.tensor([f.attention_mask for f in selected_features], dtype=torch.long)
+        all_token_type_ids = torch.tensor([f.token_type_ids for f in selected_features], dtype=torch.long)
         if output_mode == "classification":
-            all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
+            all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.long)
         elif output_mode == "regression":
-            all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+            all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
         dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
+    
         return dataset
 
     def __getitem__(self, index):
@@ -345,4 +360,4 @@ class MetaTask(Dataset):
         return self.num_task
     
     def get_tasks(self):
-        return self.task_names
+        return self.tasks

@@ -138,7 +138,7 @@ def main():
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt,
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=True)
     print('finish reading test data', flush=True)
-    print(test.task_names)
+    print(test.tasks)
     print('meta testing training samples', args.meta_testing_size)
     global_step = 0
     for epoch in range(args.epoch):

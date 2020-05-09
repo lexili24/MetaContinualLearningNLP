@@ -165,7 +165,7 @@ def main():
             print('Step:', epoch, 'Test F1:', np.mean(acc))
             print('\n')
             random_seed(int(time.time() % 10))
-        del db_test
+            del db_test
 
 
 if __name__ == "__main__":

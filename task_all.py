@@ -99,8 +99,8 @@ class MetaTask(Dataset):
         self.testing_tasks    = args.testing_tasks
         self.evaluate_whole   = args.evaluate_whole_set
         self.meta_testing_size= args.meta_testing_size
-        self.create_batch(self.num_task_train)
         self.tasks            = []
+        self.create_batch(self.num_task_train)
 
     def create_batch(self, train_num_task):
         '''

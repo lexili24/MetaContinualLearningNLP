@@ -169,27 +169,26 @@ class Learner(nn.Module):
                 print('----Testing Outer Step-----')
                 self.model.eval()
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-                query_batch = iter(query_dataloader).next()
-                query_batch = tuple(t.to(self.device) for t in query_batch)
-                q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-
-                q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
-
-                q_loss = q_outputs[0]
-                q_logits = F.softmax(q_outputs[1], dim=1)
-                pre_label_id = torch.argmax(q_logits, dim=1)
-                pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-                q_label_id = q_label_id.detach().cpu().numpy().tolist()
-
-                acc = accuracy_score(pre_label_id, q_label_id)
-                task_accs.append(acc)
+                correct = 0
+                total = 0
+                for i, batch in enumerate(query_dataloader):
+                    #query_batch = iter(query_dataloader).next()
+                    query_batch = tuple(t.to(self.device) for t in batch)
+                    q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+                    q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
+                    q_loss = q_outputs[0]
+                    q_logits = F.softmax(q_outputs[1], dim=1)
+                    pre_label_id = torch.argmax(q_logits, dim=1)
+                    pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+                    q_label_id = q_label_id.detach().cpu().numpy().tolist()
+                    
+                    total += q_label_id.size(0)
+                    correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()
+                acc = correct / total
+                #acc = accuracy_score(pre_label_id, q_label_id)
                 print('Outer Acc on query set: ', acc)
-
                 del inner_optimizer
-                torch.cuda.empty_cache()
-
-                gc.collect()
-
+        
         # Test forgetting
         with torch.no_grad():
             print('----Testing Forgetting-----')
@@ -201,19 +200,21 @@ class Learner(nn.Module):
                 total = 0
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
                 for i, batch in enumerate(query_dataloader):
-                    query_batch = iter(query_dataloader).next()
-                    query_batch = tuple(t.to(self.device) for t in query_batch)
+                    query_batch = tuple(t.to(self.device) for t in batch)
                     q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
                     q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
-
                     q_loss = q_outputs[0]
                     q_logits = F.softmax(q_outputs[1], dim=1)
                     pre_label_id = torch.argmax(q_logits, dim=1)
+                    
                     total += q_label_id.size(0)
                     correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()
                 acc = correct / total
                 task_accs.append(acc)
                 print("accuracy on task " + str(task_id) + " after finalizing: " + str(acc))
                 self.model.to(torch.device('cpu'))
+            
+            torch.cuda.empty_cache()
+            gc.collect()
 
             return np.mean(task_accs)

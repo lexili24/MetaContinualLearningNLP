@@ -132,7 +132,7 @@ class Learner(nn.Module):
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
             support = task[0]
-            # query = task[1]
+            query = task[1]
             self.model.to(self.device)
             self.model.train()
             # Random Initialize W_ for speciffic task
@@ -152,6 +152,7 @@ class Learner(nn.Module):
             print('----Task', idt[task_id], '----')
             for i in range(0, self.inner_update_step_eval):
                 print('----Testing Inner Step ', i, '-----')
+                all_loss = []
                 for inner_step, batch in enumerate(support_dataloader):
                     batch = tuple(t.to(self.device) for t in batch)
                     input_ids, attention_mask, segment_ids, label_id = batch
@@ -160,35 +161,37 @@ class Learner(nn.Module):
                     loss = outputs[0]
                     loss.backward()
                     inner_optimizer.step()
-                    print("Inner Loss on support set: ", loss.item())
+                    all_loss.append(loss)
+                print("Inner Loss on support set: ", np.mean(all_loss))
 
             del inner_optimizer
             torch.cuda.empty_cache()
             gc.collect()
+            
+            with torch.no_grad():
+                print('----Testing Outer Step-----')
+                self.model.eval()
+                query_dataloader = DataLoader(query, sampler=None, batch_size=16)
+                query_batch = iter(query_dataloader).next()
+                query_batch = tuple(t.to(self.device) for t in query_batch)
+                q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
 
-        print('----Testing Outer Step-----')
-        self.model.eval()
-        query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-        query_batch = iter(query_dataloader).next()
-        query_batch = tuple(t.to(self.device) for t in query_batch)
-        q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+                q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
 
-        q_outputs = self.model(q_input_ids, q_attention_mask, q_segment_ids, labels=q_label_id)
+                q_loss = q_outputs[0]
+                q_logits = F.softmax(q_outputs[1], dim=1)
+                pre_label_id = torch.argmax(q_logits, dim=1)
+                pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+                q_label_id = q_label_id.detach().cpu().numpy().tolist()
 
-        q_loss = q_outputs[0]
-        q_logits = F.softmax(q_outputs[1], dim=1)
-        pre_label_id = torch.argmax(q_logits, dim=1)
-        pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-        q_label_id = q_label_id.detach().cpu().numpy().tolist()
+                acc = accuracy_score(pre_label_id, q_label_id)
+                task_accs.append(acc)
+                print('Outer Acc on query set: ', acc)
 
-        acc = accuracy_score(pre_label_id, q_label_id)
-        task_accs.append(acc)
-        print('Outer Acc on query set: ', acc)
+                del inner_optimizer
+                torch.cuda.empty_cache()
 
-        del inner_optimizer
-        torch.cuda.empty_cache()
-
-        gc.collect()
+                gc.collect()
 
         # Test forgetting
         with torch.no_grad():
@@ -196,6 +199,7 @@ class Learner(nn.Module):
             for task_id, task in enumerate(batch_tasks):
                 query = task[1]
                 self.model.to(self.device)
+                self.model.eval()
                 correct = 0
                 total = 0
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)

@@ -164,9 +164,6 @@ class Learner(nn.Module):
                     all_loss.append(loss.item())
                 print("Inner Loss on support set: ", np.mean(all_loss))
 
-            del inner_optimizer
-            torch.cuda.empty_cache()
-            gc.collect()
             
             with torch.no_grad():
                 print('----Testing Outer Step-----')

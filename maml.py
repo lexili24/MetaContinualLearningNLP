@@ -180,7 +180,7 @@ class Learner(nn.Module):
                     q_logits = F.softmax(q_outputs[1], dim=1)
                     pre_label_id = torch.argmax(q_logits, dim=1)
                     pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
-                    q_label_id = q_label_id.detach().cpu().numpy().tolist()
+                    #q_label_id = q_label_id.detach().cpu().numpy().tolist()
                     
                     total += q_label_id.size(0)
                     correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()

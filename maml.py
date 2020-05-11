@@ -179,7 +179,7 @@ class Learner(nn.Module):
                     q_loss = q_outputs[0]
                     q_logits = F.softmax(q_outputs[1], dim=1)
                     pre_label_id = torch.argmax(q_logits, dim=1)
-                    pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
+                    #pre_label_id = pre_label_id.detach().cpu().numpy().tolist()
                     #q_label_id = q_label_id.detach().cpu().numpy().tolist()
                     
                     total += q_label_id.size(0)

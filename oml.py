@@ -36,6 +36,7 @@ class Learner(nn.Module):
         self.model = BertForSequenceClassification.from_pretrained(self.bert_model, num_labels=self.num_labels)
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
         self.model.train()
+        self.model.eval()
 
     def forward(self,ids, batch_tasks):
 
@@ -67,10 +68,11 @@ class Learner(nn.Module):
                 batch = tuple(t.to(self.device) for t in batch)
                 input_ids, attention_mask, segment_ids, label_id = batch
                 outputs = self.model(input_ids, attention_mask, segment_ids, labels=label_id)
+                
+                inner_optimizer.zero_grad()
                 loss = outputs[0]
                 loss.backward()
                 inner_optimizer.step()
-                inner_optimizer.zero_grad()
                 all_loss.append(loss.item())
             print("Loss in support set: ", np.mean(all_loss))
 
@@ -87,11 +89,11 @@ class Learner(nn.Module):
                     param.learn = False
                 else:
                     param.learn = True
-
+            
+            self.outer_optimizer.zero_grad()
             q_loss = q_outputs[0]
             q_loss.backward()
             self.outer_optimizer.step()
-            self.outer_optimizer.zero_grad()
 
             q_logits = F.softmax(q_outputs[1], dim=1)
             pre_label_id = torch.argmax(q_logits, dim=1)

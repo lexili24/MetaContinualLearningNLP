@@ -47,7 +47,6 @@ class Learner(nn.Module):
         if type(m) == nn.Linear:
             torch.nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
-      
     
     def get_ft_layer_loss(self, tasks_and_modes, task_order, current_id):
         '''
@@ -68,7 +67,7 @@ class Learner(nn.Module):
         ft_layer.apply(self.init_weights)
         return ft_layer, loss_fn, mode
     
-    def get_acc(self, probs, labels, mode, normalize=False):
+    def get_acc(self, probs, labels, mode, normalize=True):
         if mode == 'classification':
             logits = torch.argmax(probs, dim=1)
             acc = accuracy_score(labels.cpu(), logits.cpu(), normalize)
@@ -243,16 +242,12 @@ class Learner(nn.Module):
                     q_output_logits = classifier(q_outputs_hidden)
                     q_loss = loss_fn(q_output_logits, q_label_id)
                     
-                    #pre_label_id = torch.argmax(q_output_logits, dim=1)
-                 
-                    #total += q_label_id.size(0)
-                    #correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()
+
                     acc = self.get_acc(probs=q_output_logits, labels=q_label_id, mode=mode, normalize=False)
                     total_acc += acc
                     total += q_label_id.size(0)
-                #acc = total_acc / total
                 task_accs.append(total_acc / total)
-                print("accuracy on task " + str(task_id) + " after finalizing: " + str(acc))
+                print("accuracy on task " + str(task_id) + " after finalizing: " + str(task_accs))
                 self.model.to(torch.device('cpu'))
             
             torch.cuda.empty_cache()

@@ -126,13 +126,13 @@ class MetaTask(Dataset):
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
                 dataset, label = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
-                if self.evaluate: train_dataset = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
+                if self.evaluate: train_dataset,_ = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
             elif task in glue_processors.keys():
                 dataset, label = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
-                if self.evaluate: train_dataset = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
+                if self.evaluate: train_dataset, _ = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
             else:
                 dataset, label = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
-                if self.evaluate: train_dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
+                if self.evaluate: train_dataset,_ = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
             self.labels += [label]
             if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
                 exam_test = dataset # dev set 

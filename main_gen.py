@@ -10,7 +10,8 @@ import os
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
-from oml import Learner
+#from oml import Learner
+from maml_gen import Learner
 from task_all import MetaTask
 import random
 import numpy as np
@@ -149,7 +150,7 @@ def main():
         print("\n-----------------Meta-Training Mode-----------------\n", flush=True)
         print('ids', ids)
         print('task_batch size', len(task_batch))
-        acc = learner(ids, task_batch)
+        acc = learner(ids, task_batch, train.get_tasks_and_modes())
         print('Step:', epoch, '\tAvg Acc in query set:', acc)
         del train
         del db
@@ -160,7 +161,7 @@ def main():
             idt = []
             db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=3)
             test_batch = next(db_test)
-            acc = learner.finetune(idt, test_batch)
+            acc = learner.finetune(idt, test_batch, test.get_tasks_and_modes())
 
             print('Step:', epoch, 'Test F1:', np.mean(acc))
             print('\n')

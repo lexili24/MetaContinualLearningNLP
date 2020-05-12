@@ -13,8 +13,7 @@ import numpy as np
 from mutlitask_bert import BertForSpanClassification, BertForSequenceClassificationMultiTask
 from transformers import glue_processors, superglue_processors
 from scipy.stats import pearsonr
-
-
+from tqdm import tqdm
 
 class Learner(nn.Module):
     """
@@ -44,7 +43,7 @@ class Learner(nn.Module):
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
         self.classifiers = []
 
-    def get_ft_layer_loss(self, tasks_and_modes=tasks_and_modes, task_order=ids, current_id=task_id):
+    def get_ft_layer_loss(self, tasks_and_modes, task_order, current_id):
         '''
         helper function to return PLN and loss upon different tasks. 
         '''
@@ -62,7 +61,7 @@ class Learner(nn.Module):
         torch.nn.init.xavier_uniform_(classifier.weight.data)
         return classifier, loss_fn, mode
     
-    def get_acc(self, probs, labels, mode=mode):
+    def get_acc(self, probs, labels, mode):
         if mode == 'classification':
             logits = torch.argmax(probs, dim=1)
             acc = accuracy_score(labels.cpu(), logits.cpu())
@@ -70,6 +69,8 @@ class Learner(nn.Module):
         elif mode == 'regression':
             pears = pearsonr(logits.cpu(), labels.cpu())
             return pears
+        else: 
+            raise NotImplementedError('do not support current mode type', mode)
 
     def forward(self, ids, batch_tasks, tasks_and_modes):
         """
@@ -86,15 +87,15 @@ class Learner(nn.Module):
                     (support TensorDataset, query TensorDataset),
                     (support TensorDataset, query TensorDataset)]
 
-        # support = query = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids) for glue, others please check `task_all.py`
+        # support = query = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids) for glue tasks, others please check speficially in `task_all.py`
         """
         task_accs = []
         num_task = len(batch_tasks)
-        print(ids)
+        #print(ids)
         for task_id, task in enumerate(batch_tasks):
             support, query = task
 
-            classifier, loss_fn, mode = get_ft_layer_loss(tasks_and_modes=tasks_and_modes, task_order=ids, current_id=task_id)
+            classifier, loss_fn, mode = self.get_ft_layer_loss(tasks_and_modes=tasks_and_modes, task_order=ids, current_id=task_id)
 
             inner_optimizer = Adam(classifier.parameters(), lr=self.inner_update_lr)
 
@@ -104,7 +105,7 @@ class Learner(nn.Module):
             # inner step of meta-learning: train on classifier (PLN) only
             self.model.to(self.device)
             self.model.eval()
-            classifier.requires_grad(True)
+            classifier.requires_grad_(True)
             print('----Task', ids[task_id], '----')
             for i in range(0, self.inner_update_step):
                 print('----Training Inner Step ', i, '-----')
@@ -113,9 +114,11 @@ class Learner(nn.Module):
 
                     batch = tuple(t.to(self.device) for t in batch)
                     input_ids, attention_mask, segment_ids, label_id = batch
-                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)
+                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
                     output_digits = classifier(outputs_hidden)
-                    loss = loss_fn(output_digits.view(-1, num_labels), label_id.view(-1)) 
+                    #print('output digits', output_digits.shape)
+                    #print('label id shape', label_id.shape)
+                    loss = loss_fn(output_digits, label_id.view(-1)) 
                     # backward
                     inner_optimizer.zero_grad()
                     loss.backward()
@@ -136,14 +139,14 @@ class Learner(nn.Module):
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
             q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-            q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)
+            q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
             q_output_logits = classifier(q_outputs_hidden)
             # backward step
             self.outer_optimizer.zero_grad()
-            q_loss = loss_fn(q_output_logits.view(-1, num_labels), q_label_id.view(-1)) 
+            q_loss = loss_fn(q_output_logits, q_label_id.view(-1)) 
             q_loss.backward()
             self.outer_optimizer.step()
-            acc = get_acc(probs=q_output_logits, labels=q_label_id, mode=mode)
+            acc = self.get_acc(probs=q_output_logits, labels=q_label_id, mode=mode)
             task_accs.append(acc)
             print('Acc/Pearson in query set: ', acc)
 
@@ -163,13 +166,13 @@ class Learner(nn.Module):
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
             support, query = task
-            classifier, loss_fn, mode = get_ft_layer_loss(tasks_and_modes=tasks_and_modes, task_order=ids, current_id=task_id)    
+            classifier, loss_fn, mode = self.get_ft_layer_loss(tasks_and_modes=tasks_and_modes, task_order=ids, current_id=task_id)    
 
             inner_optimizer = Adam(classifier.parameters(), lr=self.inner_update_lr)
             
             support_dataloader = DataLoader(support, sampler=RandomSampler(support, replacement=True, num_samples = self.meta_testing_size),
                                             batch_size=self.inner_batch_size)
-\
+
             self.model.to(self.device)
             self.model.train()
             classifier.train()
@@ -180,9 +183,9 @@ class Learner(nn.Module):
                 for inner_step, batch in enumerate(support_dataloader):
                     batch = tuple(t.to(self.device) for t in batch)
                     input_ids, attention_mask, segment_ids, label_id = batch
-                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)
+                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
                     output_logits = classifier(outputs_hidden)
-                    loss = loss_fn(output_logits.view(-1, num_labels), label_id)
+                    loss = loss_fn(output_logits, label_id)
                     # pre_label_id = torch.argmax(output_logits, dim=1)
                     self.inner_optimizer.zero_grad()
                     self.outer_optimizer.zero_grad()
@@ -196,7 +199,7 @@ class Learner(nn.Module):
             with torch.no_grad():
                 print('----Testing Outer Step-----')
                 self.model.eval()
-                classifier.requires_grad(False)
+                classifier.requires_grad_(False)
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
                 correct = 0
                 total = 0
@@ -206,32 +209,33 @@ class Learner(nn.Module):
                     #query_batch = iter(query_dataloader).next()
                     query_batch = tuple(t.to(self.device) for t in batch)
                     q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)
+                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
                     q_output_logits = classifier(q_outputs_hidden)
-                    q_loss = loss_fn(q_output_logits.view(-1, num_labels), q_label_id)
+                    q_loss = loss_fn(q_output_logits, q_label_id)
 
                     # org
                     pre_label_id = torch.argmax(q_output_logits, dim=1)
                     total += q_label_id.size(0)
                     correct += pre_label_id.eq(q_label_id.to(self.device).view_as(pre_label_id)).sum().item()
                     # mine
-                    acc_f = get_acc(probs=q_output_logits, labels=q_label_id, mode=mode)
+                    acc_f = self.get_acc(probs=q_output_logits, labels=q_label_id, mode=mode)
                     total_acc += acc_f
                     num_batch += 1
-                acc = correct / total) # org
+                acc = correct / total # org
                 print('Outer Acc on query set: ', acc)
-                print('Mine Outer Acc on query set:' total_acc / num_batch)
+                print('Mine Outer Acc on query set:', total_acc / num_batch)
                 del inner_optimizer
         
         # Test forgetting, none of the bert or classifier should be updated
         # TODO: need to append all the classifier together and look at the performance of RLN layer
+        return 'task done'
         with torch.no_grad():
             print('----Testing Forgetting-----')
             for task_id, task in enumerate(batch_tasks):
                 query = task[1]
                 self.model.to(self.device)
                 self.model.eval()
-                classifier.requires_grad(False)
+                classifier.requires_grad_(False)
                 correct = 0
                 total = 0
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
@@ -239,9 +243,9 @@ class Learner(nn.Module):
                     query_batch = tuple(t.to(self.device) for t in batch)
                     q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
 
-                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)
+                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
                     q_output_logits = classifier(q_outputs_hidden)
-                    q_loss = loss_fn(q_output_logits.view(-1, num_labels), q_label_id)
+                    q_loss = loss_fn(q_output_logits, q_label_id)
                     pre_label_id = torch.argmax(q_output_logits, dim=1)
                     
                     total += q_label_id.size(0)

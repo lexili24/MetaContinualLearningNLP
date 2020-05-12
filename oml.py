@@ -34,7 +34,7 @@ class Learner(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
         self.model = BertForSequenceClassification.from_pretrained(self.bert_model, num_labels=self.num_labels)
-        self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
+        self.outer_optimizer = Adam(self.model.bert.parameters(), lr=self.outer_update_lr)
         self.model.train()
         self.model.eval()
 
@@ -53,7 +53,7 @@ class Learner(nn.Module):
             support_dataloader = DataLoader(support, sampler=RandomSampler(support),
                                             batch_size=self.inner_batch_size)
 
-            inner_optimizer = Adam(self.model.parameters(), lr=self.inner_update_lr)
+            inner_optimizer = Adam(self.model.classifier.parameters(), lr=self.inner_update_lr)
 
             self.model.train()
             for name, param in self.model.named_parameters():

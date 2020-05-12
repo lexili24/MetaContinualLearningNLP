@@ -18,10 +18,10 @@
 # https://github.com/nyu-mll/jiant/blob/11e3b696c088260d138d9c75a851d2234a3cdb2f/src/models.py#L523 
 # multi task model for reference 
 
-
+#import pdb
 import os
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 import numpy as np
 import collections
 import random
@@ -100,6 +100,7 @@ class MetaTask(Dataset):
         self.evaluate_whole   = args.evaluate_whole_set
         self.meta_testing_size= args.meta_testing_size
         self.tasks            = []
+        self.labels           = []
         self.create_batch(self.num_task_train)
 
     def create_batch(self, train_num_task):
@@ -117,26 +118,26 @@ class MetaTask(Dataset):
             else:
                 self.tasks = random.sample(self.training_tasks, train_num_task) # select k unique tasks
         else: 
-            self.tasks = self.testing_tasks # testing phase all tasks should be inorder 
+            self.tasks = self.testing_tasks # during Meta-testing, all tasks should be in-order 
 
-        for b, task in enumerate(self.tasks):  ## for each task
+        for b, task in enumerate(self.tasks):  
             print('-'*20)
             print(f'task {b}: {task}')
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
-                dataset = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
+                dataset, label = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
                 if self.evaluate: train_dataset = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
             elif task in glue_processors.keys():
-                dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
+                dataset, label = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
                 if self.evaluate: train_dataset = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
             else:
-                dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
+                dataset, label = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
                 if self.evaluate: train_dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
-            
+            self.labels += [label]
             if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
                 exam_test = dataset # dev set 
-                #exam_train = RandomSampler(train_dataset, replacement=True, num_samples = self.meta_testing_size)
-                exam_train = train_dataset
+                # in meta-testing, the support set is further sampled down to support size. therefore returning the entire set heree
+                exam_train = train_dataset 
             else:
                 exam_train, exam_test = random_split(dataset, [self.k_support, self.k_query])
 
@@ -168,75 +169,89 @@ class MetaTask(Dataset):
         output_mode = superglue_output_modes[task]
         cached_downloaded_file = os.path.join(self.data_dir, 'superglue', task_data_path)
         #print(cached_downloaded_file)
-
-        logger.info(f"Creating {self.k_support+self.k_query} features from superglue dataset file at {cached_downloaded_file}")
-        label_list = processor.get_labels()
-
-        examples = (
-                processor.get_dev_examples(cached_downloaded_file) if evaluate else processor.get_train_examples(cached_downloaded_file)
-            )
-
-        if len(examples) < self.k_query + self.k_support:
-            selected_examples = random.choices(examples, k = self.k_support + self.k_query)
-        else:
-            selected_examples = random.sample(examples, self.k_support + self.k_query)
-
-        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
-            selected_examples = examples
-
-        features = superglue_convert_examples_to_features(
-            selected_examples, tokenizer, max_length=self.max_seq_length, 
-            task = task,label_list=label_list, output_mode=output_mode, model_type = self.bert_model
+        cached_features_file = os.path.join(
+        self.data_dir,
+        'superglue',
+        "cached_{}_{}_{}_{}".format(
+            "dev" if evaluate else "train",
+            str(self.bert_model),
+            str(self.max_seq_length),
+            str(task),
+            ),
         )
+        if os.path.exists(cached_features_file):
+            logger.info("Loading features from cached file %s", cached_features_file)
+            features = torch.load(cached_features_file)
+
+        else: 
+            logger.info(f"Creating features from dataset file at {cached_downloaded_file}")
+            label_list = processor.get_labels()
+
+            examples = (processor.get_dev_examples(cached_downloaded_file) if evaluate 
+                       else processor.get_train_examples(cached_downloaded_file))
+
+            features = superglue_convert_examples_to_features(
+                        examples, tokenizer, max_length=self.max_seq_length, 
+                        task = task,label_list=label_list, output_mode=output_mode, model_type = self.bert_model)
+            if self.local_rank in [-1, 0]:
+                logger.info("Saving features into cached file %s", cached_features_file)
+                torch.save(features, cached_features_file)
 
         if self.local_rank == 0 and not evaluate:
             torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
+        if len(features) < self.k_query + self.k_support:
+            selected_features = random.choices(features, k = self.k_support + self.k_query)
+        else:
+            selected_features = random.sample(features, self.k_support + self.k_query)
+
+        if evaluate and evaluate_whole_set: # extracting entire dev set 
+            selected_features = features
 
         # Convert to Tensors and build dataset
         if task == 'copa': 
-            all_input_ids = list(map(lambda x: torch.tensor([f.input_ids for f in x], dtype = torch.long), features))
-            all_attention_mask = list(map(lambda x: torch.tensor([f.attention_mask for f in x], dtype=torch.long), features))
-            all_token_type_ids = list(map(lambda x: torch.tensor([f.token_type_ids for f in x], dtype=torch.long), features))
+            all_input_ids = list(map(lambda x: torch.tensor([f.input_ids for f in x], dtype = torch.long), selected_features))
+            all_attention_mask = list(map(lambda x: torch.tensor([f.attention_mask for f in x], dtype=torch.long), selected_features))
+            all_token_type_ids = list(map(lambda x: torch.tensor([f.token_type_ids for f in x], dtype=torch.long), selected_features))
 
             if output_mode == "classification":
-                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.long), features))
+                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.long), selected_features))
             elif output_mode == "regression":
-                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.float), features))
+                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.float), selected_features))
 
             dataset = ( TensorDataset(all_input_ids[0], all_attention_mask[0], all_token_type_ids[0], all_labels[0]), 
                         TensorDataset(all_input_ids[1], all_attention_mask[1], all_token_type_ids[1], all_labels[1]) )
 
         elif task in ['wic', 'wsc']:
-            all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-            all_attention_mask = torch.tensor([f.input_mask for f in features], dtype=torch.long)
-            all_token_type_ids = torch.tensor([f.segment_ids for f in features], dtype=torch.long)
-            all_span_1_mask = torch.tensor([f.span_1_mask for f in features], dtype=torch.long)
-            all_span_1_text = torch.tensor([f.span_1_text for f in features])
-            all_span_2_mask = torch.tensor([f.span_2_mask for f in features], dtype=torch.long)
-            all_span_2_text = torch.tensor([f.span_2_text for f in features]) 
+            all_input_ids = torch.tensor([f.input_ids for f in selected_features], dtype=torch.long)
+            all_attention_mask = torch.tensor([f.input_mask for f in selected_features], dtype=torch.long)
+            all_token_type_ids = torch.tensor([f.segment_ids for f in selected_features], dtype=torch.long)
+            all_span_1_mask = torch.tensor([f.span_1_mask for f in selected_features], dtype=torch.long)
+            all_span_1_text = torch.tensor([f.span_1_text for f in selected_features])
+            all_span_2_mask = torch.tensor([f.span_2_mask for f in selected_features], dtype=torch.long)
+            all_span_2_text = torch.tensor([f.span_2_text for f in selected_features]) 
 
             if output_mode == "classification":
-                all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
+                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.long)
             elif output_mode == "regression":
-                all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
 
             dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels,
                                     all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text
                                     )
 
         else: #for ['boolq', 'cb', 'rte']
-            all_input_ids = torch.tensor([f.input_ids for f in features], dtype=torch.long)
-            all_attention_mask = torch.tensor([f.attention_mask for f in features], dtype=torch.long)
-            all_token_type_ids = torch.tensor([f.token_type_ids for f in features], dtype=torch.long)
+            all_input_ids = torch.tensor([f.input_ids for f in selected_features], dtype=torch.long)
+            all_attention_mask = torch.tensor([f.attention_mask for f in selected_features], dtype=torch.long)
+            all_token_type_ids = torch.tensor([f.token_type_ids for f in selected_features], dtype=torch.long)
             if output_mode == "classification":
-                all_labels = torch.tensor([f.label for f in features], dtype=torch.long)
+                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.long)
             elif output_mode == "regression":
-                all_labels = torch.tensor([f.label for f in features], dtype=torch.float)
+                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
 
             dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
 
-        return dataset
+        return dataset, output_mode
 
     ### dataloader for SQuaD:
     def load_and_cache_examples_squad(self, tokenizer, evaluate=False, evaluate_whole_set = False):
@@ -249,35 +264,53 @@ class MetaTask(Dataset):
             torch.distributed.barrier()
 
         processor = SquadV2Processor() 
-        if evaluate:
-            examples = processor.get_dev_examples(self.data_dir+'/SQUAD', filename=processor.train_file)
-        else:
-            examples = processor.get_train_examples(self.data_dir+'/SQUAD', filename=processor.dev_file)
-
-        if len(examples) < self.k_query + self.k_support:
-            selected_examples = random.choices(examples, k = self.k_support + self.k_query)
-        else:
-            selected_examples = random.sample(examples, self.k_support + self.k_query)
-
-        if evaluate and evaluate_whole_set: # extracting testing dataset and want the entire set  
-            selected_examples = examples
-
-        features, dataset = squad_convert_examples_to_features(
-            examples=selected_examples,
-            tokenizer=tokenizer,
-            max_seq_length=self.max_seq_length,
-            doc_stride=self.doc_stride,
-            max_query_length=self.max_query_length,
-            is_training=not evaluate,
-            return_dataset="pt", # returns a torch.data.TensorDataset
-            threads=1, # higher if multiple processing threads
+        
+        cached_features_file = os.path.join(
+        self.data_dir,
+        'squad',
+        "cached_{}_{}_{}_{}".format(
+            "dev" if evaluate else "train",
+            str(self.bert_model),
+            str(self.max_seq_length),
+            str(task),
+            ),
         )
+        if os.path.exists(cached_features_file):
+            logger.info("Loading features from cached file %s", cached_features_file)
+            features_and_dataset= torch.load(cached_features_file)
+            _, dataset = (
+                features_and_dataset["features"],
+                features_and_dataset["dataset"])
+        else: 
+            logger.info(f"Creating features from dataset file at {cached_downloaded_file}")
+            if evaluate:
+                examples = processor.get_dev_examples(self.data_dir+'/SQUAD', filename=processor.train_file)
+            else:
+                examples = processor.get_train_examples(self.data_dir+'/SQUAD', filename=processor.dev_file)
+
+            features, dataset = squad_convert_examples_to_features(
+                examples=examples,
+                tokenizer=tokenizer,
+                max_seq_length=self.max_seq_length,
+                doc_stride=self.doc_stride,
+                max_query_length=self.max_query_length,
+                is_training=not evaluate,
+                return_dataset="pt", # returns a torch.data.TensorDataset
+                threads=1, # higher if multiple processing threads
+              ) 
+
+            if self.local_rank in [-1, 0]:
+                logger.info("Saving features into cached file %s", cached_features_file)
+                torch.save({"features": features, "dataset": dataset}, cached_features_file)
 
         if self.local_rank == 0 and not evaluate:
-            # Make sure only the first process in distributed training process the dataset, and the others will use the cache
-            torch.distributed.barrier()
+            torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
 
-        return dataset
+        if evaluate and evaluate_whole_set: # extracting entire dev set 
+            return dataset 
+        else:
+            return_dataset, _ = random_split(dataset, [self.k_support + self.k_query, len(dataset)-(self.k_support + self.k_query)])
+            return return_dataset, 'squad'
 
     # dataloader of GLUE 
     def load_and_cache_examples_glue(self, task, tokenizer, evaluate=False, evaluate_whole_set=False):
@@ -349,7 +382,7 @@ class MetaTask(Dataset):
             all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
         dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
     
-        return dataset
+        return dataset, output_mode
 
     def __getitem__(self, index):
         support_set = self.supports[index]
@@ -360,5 +393,5 @@ class MetaTask(Dataset):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return self.num_task_train
     
-    def get_tasks(self):
-        return self.tasks
+    def get_tasks_and_modes(self):
+        return [*zip(self.tasks, self.labels)]

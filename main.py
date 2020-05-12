@@ -131,14 +131,13 @@ def main():
 
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
     learner = Learner(args)
-
     # test = MetaTask(test_examples, num_task = args.num_task_test, k_support=args.k_spt,
     #                 k_query=args.k_qry, tokenizer = tokenizer)
     print('start reading test data', flush=True)
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt,
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=True)
     print('finish reading test data', flush=True)
-    print(test.tasks)
+    print(test.get_tasks_and_modes())
     print('meta testing training samples', args.meta_testing_size)
     global_step = 0
     for epoch in range(args.epoch):
@@ -147,16 +146,17 @@ def main():
                          k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=False)
         db = create_batch_of_tasks(ids, epoch, train, is_shuffle=True, batch_size=args.outer_batch_size)
         task_batch = next(db)
-        print("\n-----------------Training Mode-----------------\n", flush=True)
+        print("\n-----------------Meta-Training Mode-----------------\n", flush=True)
+        print('ids', ids)
         print('task_batch size', len(task_batch))
-        acc = learner(ids, task_batch)
+        acc = learner(ids, task_batch, train.get_tasks_and_modes())
         print('Step:', epoch, '\tAvg Acc in query set:', acc)
         del train
         del db
 
         if epoch % 5 == 0:
             random_seed(123)
-            print("\n-----------------Testing Mode-----------------\n")
+            print("\n-----------------Meta-Testing Mode-----------------\n")
             idt = []
             db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=3)
             test_batch = next(db_test)

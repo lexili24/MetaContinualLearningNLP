@@ -56,7 +56,7 @@ class Learner(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = BertModel.from_pretrained(self.bert_model)
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
-        self.classifiers = [None]*args.num_task_test
+        self.classifiers = {}
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
 
     def init_weights(self, m):
@@ -95,11 +95,11 @@ class Learner(nn.Module):
             given prediction & labels, return corresponding loss base on number of labels
         '''
         if num_labels == 1:
-            pears = pearsonr(logits.cpu(), labels.cpu())
+            pears = pearsonr(probs.view(-1).cpu(), labels.view(-1).cpu())[0]
             return pears
         else:
             logits = torch.argmax(probs, dim=1)
-            acc = accuracy_score(labels.cpu(), logits.cpu(), normalize)
+            acc = accuracy_score(labels.view(-1).cpu(), logits.view(-1).cpu(), normalize)
             return acc
 
     def get_loss(self, batch, base_model, classifier, current_task, loss_fn, verbose = False, return_acc = False):
@@ -123,11 +123,11 @@ class Learner(nn.Module):
             output_logits = classifier(prod_1, prod_2)
         else:
             input_ids, attention_mask, segment_ids, label_id = batch
-            # print('standard input shape', input_ids.shape)
             outputs_hidden = base_model(input_ids, attention_mask, segment_ids)[1]
             output_logits = classifier(outputs_hidden)
+        if current_task == 'sts-b': output_logits = output_logits.view(-1)
         loss = loss_fn(output_logits, label_id.view(-1)) 
-        if output_acc:
+        if return_acc:
             return loss, output_logits, label_id
         else: 
             return loss
@@ -269,7 +269,7 @@ class Learner(nn.Module):
                     total += q_label_id.size(0)
                 print('Outer Acc on query set:', total_acc / total)
                 del inner_optimizer
-            self.classifiers[i] = classifier
+            self.classifiers[current_task] = classifier
         
         # Test forgetting, none of the bert or classifier should be updated
         with torch.no_grad():
@@ -282,7 +282,7 @@ class Learner(nn.Module):
 
                 self.model.to(self.device)
                 self.model.eval()
-                classifier = self.classifiers[task_id] # recall the best PLN trainied on meta-testing inner loop phase
+                classifier = self.classifiers[current_task] # recall the best PLN trainied on meta-testing inner loop phase
                 classifier.eval()
 
                 total = 0
@@ -295,8 +295,9 @@ class Learner(nn.Module):
                     acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels, normalize=False)
                     total_acc += acc
                     total += q_label_id.size(0)
-                task_accs.append(total_acc / total)
-                print("accuracy on task " + current_task + " after finalizing: " + str(task_accs))
+                    acc = total_acc / tota
+                task_accs.append(acc)
+                print("accuracy on task " + current_task + " after finalizing: " + str(acc))
                 self.model.to(torch.device('cpu'))
             
             torch.cuda.empty_cache()

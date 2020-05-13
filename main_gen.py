@@ -40,10 +40,10 @@ def create_batch_of_tasks(ids, epoch, taskset,  task_list, is_shuffle=True, batc
     #     yield [taskset[idxs[i]] for i in range(j, min(j + batch_size,len(taskset)))]
 
 
-def create_test_tasks(idt, epoch, taskset, is_shuffle=False, batch_size=3):
+def create_test_tasks(idt, epoch, taskset, task_list, is_shuffle=False, batch_size=3):
     idxs = list(range(0, batch_size))
     for i in range(0, batch_size):
-        idt.append(idxs[i])
+        idt.append(task_list[idxs[i]])
     yield [taskset[i] for i in range(0, batch_size)]
 
 def main():
@@ -104,7 +104,7 @@ def main():
                         help="The maximum number of tokens for the question. Questions longer than this will "
                         "be truncated to this length.")
 
-    parser.add_argument("--training_tasks", default=['copa','copa','copa','copa'], type=list,
+    parser.add_argument("--training_tasks", default=['sst-2', 'mnli', 'qqp', 'qnli'], type=list,
                         #choices = ['cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'snli', 'sst-2', 'sts-b', 'wnli']
                         help="Define meta-training tasks list.") # ['sst-2', 'mnli', 'qqp', 'qnli']
 

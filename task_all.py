@@ -18,14 +18,13 @@
 # https://github.com/nyu-mll/jiant/blob/11e3b696c088260d138d9c75a851d2234a3cdb2f/src/models.py#L523 
 # multi task model for reference 
 
-#import pdb
 import os
 import torch
 from torch.utils.data import Dataset, Subset
 import numpy as np
 import collections
 import random
-import json, pickle
+# import json, pickle
 from torch.utils.data import TensorDataset, RandomSampler, random_split
 from transformers import glue_processors, superglue_processors
 from transformers import glue_output_modes, superglue_output_modes
@@ -132,6 +131,7 @@ class MetaTask(Dataset):
             else:
                 dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
                 if self.evaluate: train_dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
+            
             if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
                 exam_test = dataset # dev set 
                 # in meta-testing, the support set is further sampled down to support size. therefore returning the entire set heree
@@ -177,6 +177,7 @@ class MetaTask(Dataset):
             str(task),
             ),
         )
+        # print(cached_features_file)
         if os.path.exists(cached_features_file):
             logger.info("Loading features from cached file %s", cached_features_file)
             features = torch.load(cached_features_file)
@@ -197,28 +198,24 @@ class MetaTask(Dataset):
 
         if self.local_rank == 0 and not evaluate:
             torch.distributed.barrier()  # Make sure only the first process in distributed training process the dataset, and the others will use the cache
-
         if len(features) < self.k_query + self.k_support:
             selected_features = random.choices(features, k = self.k_support + self.k_query)
         else:
             selected_features = random.sample(features, self.k_support + self.k_query)
-
         if evaluate and evaluate_whole_set: # extracting entire dev set 
             selected_features = features
-
         # Convert to Tensors and build dataset
         if task == 'copa': 
-            all_input_ids = list(map(lambda x: torch.tensor([f.input_ids for f in x], dtype = torch.long), selected_features))
-            all_attention_mask = list(map(lambda x: torch.tensor([f.attention_mask for f in x], dtype=torch.long), selected_features))
-            all_token_type_ids = list(map(lambda x: torch.tensor([f.token_type_ids for f in x], dtype=torch.long), selected_features))
-
-            if output_mode == "classification":
-                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.long), selected_features))
-            elif output_mode == "regression":
-                all_labels = list(map(lambda x: torch.tensor([f.label for f in x], dtype=torch.float), selected_features))
-
-            dataset = ( TensorDataset(all_input_ids[0], all_attention_mask[0], all_token_type_ids[0], all_labels[0]), 
-                        TensorDataset(all_input_ids[1], all_attention_mask[1], all_token_type_ids[1], all_labels[1]) )
+            all_input_ids_1 = torch.tensor([f[0].input_ids for f in selected_features], dtype=torch.long)
+            all_input_ids_2 = torch.tensor([f[1].input_ids for f in selected_features], dtype=torch.long)
+            all_attention_mask_1 = torch.tensor([f[0].attention_mask for f in selected_features], dtype=torch.long)
+            all_attention_mask_2 = torch.tensor([f[1].attention_mask for f in selected_features], dtype=torch.long)
+            all_token_type_ids_1 = torch.tensor([f[0].token_type_ids for f in selected_features], dtype=torch.long)
+            all_token_type_ids_2 = torch.tensor([f[1].token_type_ids for f in selected_features], dtype=torch.long)
+            all_labels_1 = torch.tensor([f[0].label for f in selected_features], dtype=torch.long)
+            all_labels_2 = torch.tensor([f[1].label for f in selected_features], dtype=torch.long)
+            dataset = TensorDataset(all_input_ids_1, all_attention_mask_1, all_token_type_ids_1, all_labels_1,
+                                    all_input_ids_2, all_attention_mask_2, all_token_type_ids_2, all_labels_2)
 
         elif task in ['wic', 'wsc']:
             all_input_ids = torch.tensor([f.input_ids for f in selected_features], dtype=torch.long)
@@ -228,11 +225,8 @@ class MetaTask(Dataset):
             all_span_1_text = torch.tensor([f.span_1_text for f in selected_features])
             all_span_2_mask = torch.tensor([f.span_2_mask for f in selected_features], dtype=torch.long)
             all_span_2_text = torch.tensor([f.span_2_text for f in selected_features]) 
+            all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.long)
 
-            if output_mode == "classification":
-                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.long)
-            elif output_mode == "regression":
-                all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
 
             dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels,
                                     all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text
@@ -391,5 +385,5 @@ class MetaTask(Dataset):
         # as we have built up to batchsz of sets, you can sample some small batch size of sets.
         return self.num_task_train
     
-    def get_tasks_and_modes(self):
+    def get_tasks(self):
         return self.tasks

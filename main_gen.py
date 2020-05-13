@@ -104,9 +104,9 @@ def main():
                         help="The maximum number of tokens for the question. Questions longer than this will "
                         "be truncated to this length.")
 
-    parser.add_argument("--training_tasks", default=['sst-2', 'mnli', 'qqp', 'qnli'], type=list,
+    parser.add_argument("--training_tasks", default=['copa','copa','copa','copa'], type=list,
                         #choices = ['cola', 'mnli', 'mrpc', 'qnli', 'qqp', 'rte', 'snli', 'sst-2', 'sts-b', 'wnli']
-                        help="Define meta-training tasks list.") # 
+                        help="Define meta-training tasks list.") # ['sst-2', 'mnli', 'qqp', 'qnli']
 
     parser.add_argument("--testing_tasks", default=['cola', 'mrpc', 'sts-b', 'rte'], type=list,
                         help="Define meta-testing tasks list.")

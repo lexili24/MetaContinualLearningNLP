@@ -15,6 +15,21 @@ from transformers import glue_processors, superglue_processors
 from scipy.stats import pearsonr
 from tqdm import tqdm
 
+class bilinear_classifier(nn.Module):
+
+    def __init__(self, num_labels = 2, input_size = 768):
+        super(bilinear_classifier, self).__init__()
+        self.bilinear_layer = nn.Bilinear(input_size, input_size, num_labels)
+        #self.dropout = nn.Dropout(0.1, inplace = False)
+        self.output = nn.Sigmoid()
+
+    def forward(self, span_emb_1, span_emb_2, label=None):
+        x = self.bilinear_layer(span_emb_1, span_emb_2)
+        x = self.output(x)
+        return x
+
+
+
 class Learner(nn.Module):
     """
     This is a modified version of `Meta Learner` from  `maml.py`. Instead of calling a `BertForSequenceClassification`,
@@ -45,10 +60,10 @@ class Learner(nn.Module):
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
 
     def init_weights(self, m):
-        if type(m) == nn.Linear:
+        if type(m) in [nn.Linear, nn.Bilinear]:
             torch.nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
-    
+
     def get_ft_layer_loss(self, task_order, current_id):
         '''
         helper function to return PLN and loss upon different tasks. 
@@ -66,8 +81,12 @@ class Learner(nn.Module):
             loss_fn = CrossEntropyLoss()
 
         # Random Initialize W_ for classification
-        ft_layer = nn.Sequential(nn.Dropout(p=0.1, inplace = False),
-                nn.Linear(768, num_labels).to(self.device))
+        # nn.Sequential does not support multiple inputs yet 
+        if task in ['copa','wic', 'wsc']: 
+            ft_layer = bilinear_classifier(num_labels = num_labels, input_size = 768)
+        else:
+            ft_layer = nn.Sequential(nn.Dropout(p=0.1, inplace = False),
+                    nn.Linear(768, num_labels)).to(self.device)
         ft_layer.apply(self.init_weights)
         return ft_layer, loss_fn, num_labels
     
@@ -79,6 +98,36 @@ class Learner(nn.Module):
             logits = torch.argmax(probs, dim=1)
             acc = accuracy_score(labels.cpu(), logits.cpu(), normalize)
             return acc
+
+    def get_loss(self, batch, base_model, classifier, current_task, loss_fn, verbose = False, return_acc = False):
+        '''
+            given RLN and PLN, generate logits base on current task.
+        '''
+        if current_task == 'copa':
+            input_ids_1, attention_mask_1, segment_ids_1, label_id,\
+            input_ids_2, attention_mask_2, segment_ids_2, _ = batch
+            if verbose: print('input shapes', input_ids_1.shape, attention_mask_1.shape, segment_ids_1.shape)
+            outputs_hidden_1 = base_model(input_ids_1, attention_mask_1, segment_ids_1)[1]
+            outputs_hidden_2 = base_model(input_ids_2, attention_mask_2, segment_ids_2)[1]
+            if verbose: print('outputs hidden shapes',outputs_hidden_1.shape, outputs_hidden_2.shape)
+            output_logits = classifier(outputs_hidden_1, outputs_hidden_2)
+        elif current_task in ['wic', 'wsc']:
+            all_input_ids, all_attention_mask, all_token_type_ids, label_id = batch[:4]
+            all_span_1_mask, all_span_1_text, all_span_2_mask, all_span_2_text = batch[4:]
+            outputs_hidden = base_model(all_input_ids, all_attention_mask, all_token_type_ids)[0]
+            prod_1 = (outputs_hidden * all_span_1_mask.unsqueeze(-1).float()).sum(dim=-2)
+            prod_2 = (outputs_hidden * all_span_2_mask.unsqueeze(-1).float()).sum(dim=-2)
+            output_logits = classifier(prod_1, prod_2)
+        else:
+            input_ids, attention_mask, segment_ids, label_id = batch
+            # print('standard input shape', input_ids.shape)
+            outputs_hidden = base_model(input_ids, attention_mask, segment_ids)[1]
+            output_logits = classifier(outputs_hidden)
+        loss = loss_fn(output_logits, label_id.view(-1)) 
+        if output_acc:
+            return loss, output_logits, label_id
+        else: 
+            return loss
 
     def forward(self, ids, batch_tasks):
         """
@@ -113,17 +162,15 @@ class Learner(nn.Module):
             self.model.to(self.device)
             self.model.eval()
             classifier.requires_grad_(True)
-            print('----Task', ids[task_id], '----')
+            current_task = ids[task_id]
+            print('----Task', current_task, '----')
             for i in range(0, self.inner_update_step):
                 print('----Training Inner Step ', i, '-----')
                 all_loss = []
                 for inner_step, batch in enumerate(support_dataloader):
 
                     batch = tuple(t.to(self.device) for t in batch)
-                    input_ids, attention_mask, segment_ids, label_id = batch
-                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
-                    output_digits = classifier(outputs_hidden)
-                    loss = loss_fn(output_digits, label_id.view(-1)) 
+                    loss = self.get_loss(batch=batch, base_model=self.model, classifier=classifier, current_task=current_task, loss_fn = loss_fn)
                     # backward
                     inner_optimizer.zero_grad()
                     loss.backward()
@@ -142,14 +189,14 @@ class Learner(nn.Module):
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
-            q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-            q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-            q_output_logits = classifier(q_outputs_hidden)
-            # print('output logits size', q_output_logits.shape)
-            # print('true label', q_segment_ids )
+            # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+            # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
+            # q_output_logits = classifier(q_outputs_hidden)
+            # q_loss = loss_fn(q_output_logits, q_label_id.view(-1)) 
+            q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                                    classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
             # backward step
             self.outer_optimizer.zero_grad()
-            q_loss = loss_fn(q_output_logits, q_label_id.view(-1)) 
             q_loss.backward()
             self.outer_optimizer.step()
             acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels)
@@ -189,18 +236,22 @@ class Learner(nn.Module):
                 print('----Testing Inner Step ', i, '-----')
                 all_loss = []
                 for inner_step, batch in enumerate(support_dataloader):
-                    #print(batch)
                     batch = tuple(t.to(self.device) for t in batch)
-                    input_ids, attention_mask, segment_ids, label_id = batch
-                    outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
-                    output_logits = classifier(outputs_hidden)
-                    loss = loss_fn(output_logits, label_id)
-                    # pre_label_id = torch.argmax(output_logits, dim=1)
+                    # forward
+                    current_task = idt[task_id]
+                    # input_ids, attention_mask, segment_ids, label_id = batch
+                    # outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
+                    # output_logits = classifier(outputs_hidden)
+                    # loss = loss_fn(output_logits, label_id)
+                    loss = self.get_loss(batch=batch, base_model=self.model, 
+                        classifier=classifier, current_task=current_task, loss_fn = loss_fn)
+                    # backward
                     inner_optimizer.zero_grad()
                     self.outer_optimizer.zero_grad()
                     loss.backward()
                     inner_optimizer.step()
                     self.outer_optimizer.step()
+                    # log
                     all_loss.append(loss.item())
                 print("Inner Loss on support set: ", np.mean(all_loss))
 
@@ -216,12 +267,12 @@ class Learner(nn.Module):
                 for i, batch in enumerate(query_dataloader):
                     #query_batch = iter(query_dataloader).next()
                     query_batch = tuple(t.to(self.device) for t in batch)
-                    q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-                    q_output_logits = classifier(q_outputs_hidden)
-                    q_loss = loss_fn(q_output_logits, q_label_id)
-
-                    # mine
+                    # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+                    # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
+                    # q_output_logits = classifier(q_outputs_hidden)
+                    # q_loss = loss_fn(q_output_logits, q_label_id)
+                    q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                        classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
                     acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, normalize=False)
                     total_acc += acc
                     total += q_label_id.size(0)
@@ -230,10 +281,10 @@ class Learner(nn.Module):
             self.classifiers[i] = classifier
         
         # Test forgetting, none of the bert or classifier should be updated
-        # TODO: need to append all the classifier together and look at the performance of RLN layer
         with torch.no_grad():
             print('----Testing Forgetting-----')
             for task_id, task in enumerate(batch_tasks):
+                current_task = idt[task_id]
                 query = task[1]
                 self.model.to(self.device)
                 self.model.eval()
@@ -244,18 +295,19 @@ class Learner(nn.Module):
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
                 for i, batch in enumerate(query_dataloader):
                     query_batch = tuple(t.to(self.device) for t in batch)
-                    q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
 
-                    q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-                    q_output_logits = classifier(q_outputs_hidden)
-                    q_loss = loss_fn(q_output_logits, q_label_id)
-                    
+                    # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
+                    # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
+                    # q_output_logits = classifier(q_outputs_hidden)
+                    # q_loss = loss_fn(q_output_logits, q_label_id)
 
-                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, normalize=False)
+                    q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                                        classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
+                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = self.modes[current_task], normalize=False)
                     total_acc += acc
                     total += q_label_id.size(0)
                 task_accs.append(total_acc / total)
-                print("accuracy on task " + str(task_id) + " after finalizing: " + str(task_accs))
+                print("accuracy on task " + current_task + " after finalizing: " + str(task_accs))
                 self.model.to(torch.device('cpu'))
             
             torch.cuda.empty_cache()

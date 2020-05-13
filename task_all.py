@@ -100,7 +100,6 @@ class MetaTask(Dataset):
         self.evaluate_whole   = args.evaluate_whole_set
         self.meta_testing_size= args.meta_testing_size
         self.tasks            = []
-        self.labels           = []
         self.create_batch(self.num_task_train)
 
     def create_batch(self, train_num_task):
@@ -121,19 +120,18 @@ class MetaTask(Dataset):
             self.tasks = self.testing_tasks # during Meta-testing, all tasks should be in-order 
 
         for b, task in enumerate(self.tasks):  
-            print('-'*20)
-            print(f'task {b}: {task}')
+            # print('-'*20)
+            # print(f'task {b}: {task}')
             # 2.select k_support + k_query examples from task randomly
             if task == 'squad':
-                dataset, label = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
-                if self.evaluate: train_dataset,_ = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
+                dataset = self.load_and_cache_examples_squad(task, self.tokenizer, self.evaluate, self.evaluate_whole)
+                if self.evaluate: train_dataset = self.load_and_cache_examples_squad(task, self.tokenizer, True, self.evaluate_whole)
             elif task in glue_processors.keys():
-                dataset, label = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
-                if self.evaluate: train_dataset, _ = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
+                dataset = self.load_and_cache_examples_glue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
+                if self.evaluate: train_dataset = self.load_and_cache_examples_glue(task, self.tokenizer, True, self.evaluate_whole)
             else:
-                dataset, label = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
-                if self.evaluate: train_dataset,_ = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
-            self.labels += [label]
+                dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, self.evaluate, self.evaluate_whole) # map style dataset 
+                if self.evaluate: train_dataset = self.load_and_cache_examples_superglue(task, self.tokenizer, True, self.evaluate_whole)
             if self.evaluate and self.evaluate_whole:  # evaluate support: entire training set, query: entire dev set
                 exam_test = dataset # dev set 
                 # in meta-testing, the support set is further sampled down to support size. therefore returning the entire set heree
@@ -251,7 +249,7 @@ class MetaTask(Dataset):
 
             dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
 
-        return dataset, output_mode
+        return dataset
 
     ### dataloader for SQuaD:
     def load_and_cache_examples_squad(self, tokenizer, evaluate=False, evaluate_whole_set = False):
@@ -310,7 +308,7 @@ class MetaTask(Dataset):
             return dataset 
         else:
             return_dataset, _ = random_split(dataset, [self.k_support + self.k_query, len(dataset)-(self.k_support + self.k_query)])
-            return return_dataset, 'squad'
+            return return_dataset
 
     # dataloader of GLUE 
     def load_and_cache_examples_glue(self, task, tokenizer, evaluate=False, evaluate_whole_set=False):
@@ -382,7 +380,7 @@ class MetaTask(Dataset):
             all_labels = torch.tensor([f.label for f in selected_features], dtype=torch.float)
         dataset = TensorDataset(all_input_ids, all_attention_mask, all_token_type_ids, all_labels)
     
-        return dataset, output_mode
+        return dataset
 
     def __getitem__(self, index):
         support_set = self.supports[index]
@@ -394,4 +392,4 @@ class MetaTask(Dataset):
         return self.num_task_train
     
     def get_tasks_and_modes(self):
-        return [*zip(self.tasks, self.labels)]
+        return self.tasks

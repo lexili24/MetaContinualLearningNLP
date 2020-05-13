@@ -1,7 +1,7 @@
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from torch.optim import Adam
+from torch.optim import Adam, lr_scheduler
 from torch.nn import CrossEntropyLoss
 from transformers import BertForSequenceClassification
 from copy import deepcopy
@@ -35,6 +35,8 @@ class Learner(nn.Module):
 
         self.model = BertForSequenceClassification.from_pretrained(self.bert_model, num_labels=self.num_labels)
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
+        self.scheduler = lr_scheduler.CosineAnnealingLR(optimizer=self.outer_optimizer, T_max=args.epoch,
+                                                        eta_min=args.min_learning_rate)
         self.model.train()
 
     def forward(self, ids, batch_tasks):

@@ -79,6 +79,9 @@ def main():
     parser.add_argument("--inner_update_lr", default=5e-5, type=float,
                         help="Inner update learning rate")
 
+    parser.add_argument('--min_learning_rate', type=float, default=5e-7, 
+                        help='Min learning rate')
+
     parser.add_argument("--inner_update_step", default=5, type=int,
                         help="Number of interation in the inner loop during train time")
 

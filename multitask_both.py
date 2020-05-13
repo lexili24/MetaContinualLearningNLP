@@ -91,6 +91,9 @@ class Learner(nn.Module):
         return ft_layer, loss_fn, num_labels
     
     def get_acc(self, probs, labels, num_labels, normalize=True):
+        '''
+            given prediction & labels, return corresponding loss base on number of labels
+        '''
         if num_labels == 1:
             pears = pearsonr(logits.cpu(), labels.cpu())
             return pears
@@ -189,10 +192,6 @@ class Learner(nn.Module):
             query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
             query_batch = iter(query_dataloader).next()
             query_batch = tuple(t.to(self.device) for t in query_batch)
-            # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-            # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-            # q_output_logits = classifier(q_outputs_hidden)
-            # q_loss = loss_fn(q_output_logits, q_label_id.view(-1)) 
             q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                     classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
             # backward step
@@ -223,6 +222,7 @@ class Learner(nn.Module):
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
             support, query = task
+            current_task = idt[task_id]
             classifier, loss_fn, num_labels = self.get_ft_layer_loss(task_order=idt, current_id=task_id)    
             inner_optimizer = Adam(classifier.parameters(), lr=self.inner_update_lr)
             
@@ -238,11 +238,6 @@ class Learner(nn.Module):
                 for inner_step, batch in enumerate(support_dataloader):
                     batch = tuple(t.to(self.device) for t in batch)
                     # forward
-                    current_task = idt[task_id]
-                    # input_ids, attention_mask, segment_ids, label_id = batch
-                    # outputs_hidden = self.model(input_ids, attention_mask, segment_ids)[1]
-                    # output_logits = classifier(outputs_hidden)
-                    # loss = loss_fn(output_logits, label_id)
                     loss = self.get_loss(batch=batch, base_model=self.model, 
                         classifier=classifier, current_task=current_task, loss_fn = loss_fn)
                     # backward
@@ -267,10 +262,6 @@ class Learner(nn.Module):
                 for i, batch in enumerate(query_dataloader):
                     #query_batch = iter(query_dataloader).next()
                     query_batch = tuple(t.to(self.device) for t in batch)
-                    # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-                    # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-                    # q_output_logits = classifier(q_outputs_hidden)
-                    # q_loss = loss_fn(q_output_logits, q_label_id)
                     q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
                     acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, normalize=False)
@@ -285,25 +276,23 @@ class Learner(nn.Module):
             print('----Testing Forgetting-----')
             for task_id, task in enumerate(batch_tasks):
                 current_task = idt[task_id]
+                nums_labels = self.modes[current_task]
+                loss_fn = MSELoss() if nums_labels == 1 else CrossEntropyLoss()
                 query = task[1]
+
                 self.model.to(self.device)
                 self.model.eval()
                 classifier = self.classifiers[task_id] # recall the best PLN trainied on meta-testing inner loop phase
                 classifier.eval()
+
                 total = 0
                 total_acc = 0
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
                 for i, batch in enumerate(query_dataloader):
                     query_batch = tuple(t.to(self.device) for t in batch)
-
-                    # q_input_ids, q_attention_mask, q_segment_ids, q_label_id = query_batch
-                    # q_outputs_hidden = self.model(q_input_ids, q_attention_mask, q_segment_ids)[1]
-                    # q_output_logits = classifier(q_outputs_hidden)
-                    # q_loss = loss_fn(q_output_logits, q_label_id)
-
                     q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = self.modes[current_task], normalize=False)
+                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels, normalize=False)
                     total_acc += acc
                     total += q_label_id.size(0)
                 task_accs.append(total_acc / total)

@@ -11,7 +11,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 #from oml import Learner
-from maml_gen import Learner
+from multitask_both import Learner
 from task_all import MetaTask
 import random
 import numpy as np

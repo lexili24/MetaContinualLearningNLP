@@ -15,6 +15,7 @@ from multitask_both import Learner
 from task_all import MetaTask
 import random
 import numpy as np
+from collections import defaultdict
 
 
 def random_seed(value):
@@ -119,9 +120,14 @@ def main():
 
     parser.add_argument("--oml", default=False, type=bool,
             help="Turn on this flag to run on oml")
+    parser.add_argument("--saved_file", default='results.txt', type=str,
+        help="indicate location to save file")
+
+
 
     args = parser.parse_args()
-
+    
+    
     ###  log 
     if args.oml == True:
         print('='*35, 'Training OML', '='*35)
@@ -129,6 +135,8 @@ def main():
         print('='*35, 'Training MAML', '='*35)
     print('meta training tasks', args.training_tasks)
     print('meta testing tasks', args.testing_tasks)
+    meta_testing_outer = defaultdict(list)
+    forgetting_result = defaultdict(list)
 
     ## initialize model
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=True)
@@ -160,12 +168,15 @@ def main():
             db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=3, task_list = args.testing_tasks)
             test_batch = next(db_test)
             acc = learner.finetune(idt, test_batch)
-
+            for i, result in enumerate(acc):
+                forgetting_result[ids[i]].append(result)
             print('Step:', epoch, 'Test F1:', np.mean(acc))
             print('\n')
             random_seed(int(time.time() % 10))
             del db_test
-
+      
+    with open(args.saved_file,'w') as file:
+        file.write(json.dumps(forgetting_result))
 
 if __name__ == "__main__":
     main()

@@ -14,9 +14,14 @@ import numpy as np
 from transformers import glue_processors, superglue_processors
 from scipy.stats import pearsonr
 from tqdm import tqdm
+from collections import defaultdict
+from sklearn.metrics import matthews_corrcoef
 
 class bilinear_classifier(nn.Module):
-
+    """
+    This is a simple fine-tune classifier that takes in two inputs at the same time. Dropout is not applied as dropout can only
+    takes in one input at a time. This module is applied on SuperGlue tasks 'copa', 'wic' and 'wsc'. 
+    """
     def __init__(self, num_labels = 2, input_size = 768):
         super(bilinear_classifier, self).__init__()
         self.bilinear_layer = nn.Bilinear(input_size, input_size, num_labels)
@@ -40,8 +45,6 @@ class Learner(nn.Module):
 
     def __init__(self, args):
         """
-        :param:
-            
         """
         super(Learner, self).__init__()
         
@@ -58,8 +61,13 @@ class Learner(nn.Module):
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
         self.classifiers = {}
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
+        self.results = defaultdict(list)
+        self.forgetting_result = defaultdict(list)
 
     def init_weights(self, m):
+        '''
+        A simple function that randomly initiliazed all linear/bilinear layers in xavier distribution. 
+        '''
         if type(m) in [nn.Linear, nn.Bilinear]:
             torch.nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
@@ -81,7 +89,6 @@ class Learner(nn.Module):
             loss_fn = CrossEntropyLoss()
 
         # Random Initialize W_ for classification
-        # nn.Sequential does not support multiple inputs yet 
         if task in ['copa','wic', 'wsc']: 
             ft_layer = bilinear_classifier(num_labels = num_labels, input_size = 768)
         else:
@@ -90,17 +97,23 @@ class Learner(nn.Module):
         ft_layer.apply(self.init_weights)
         return ft_layer, loss_fn, num_labels
     
-    def get_acc(self, probs, labels, num_labels, normalize=True):
+    def get_acc(self, probs, labels, num_labels, current_task, normalize=True):
         '''
             given prediction & labels, return corresponding loss base on number of labels
         '''
-        if num_labels == 1:
+        if num_labels == 1 and current_task == 'sts-b':
+            labels = labels.type(torch.float)/5 - 0.5
+            probs = probs.type(torch.float) - 0.5
             pears = pearsonr(probs.view(-1).cpu(), labels.view(-1).cpu())[0]
             return pears
-        else:
-            logits = torch.argmax(probs, dim=1)
+        logits = torch.argmax(probs, dim=1)
+        if current_task == 'cola':
+            #print('labels',labels)
+            #print('logits', logits)
+            acc = matthews_corrcoef(labels.view(-1).cpu(), logits.view(-1).cpu())
+        else: 
             acc = accuracy_score(labels.view(-1).cpu(), logits.view(-1).cpu(), normalize)
-            return acc
+        return acc
 
     def get_loss(self, batch, base_model, classifier, current_task, loss_fn, verbose = False, return_acc = False):
         '''
@@ -198,7 +211,7 @@ class Learner(nn.Module):
             self.outer_optimizer.zero_grad()
             q_loss.backward()
             self.outer_optimizer.step()
-            acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels)
+            acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
             task_accs.append(acc)
             print('Acc in query set: ', acc)
 
@@ -218,7 +231,7 @@ class Learner(nn.Module):
         :input:
             batch_tasks: batch of tasks
         '''
-        task_accs = []
+        all_task_accs = []
         num_task = len(batch_tasks)
         for task_id, task in enumerate(batch_tasks):
             support, query = task
@@ -264,10 +277,11 @@ class Learner(nn.Module):
                     query_batch = tuple(t.to(self.device) for t in batch)
                     q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, normalize=False)
-                    total_acc += acc
+                    batch_acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, current_task = current_task)
+                    total_acc += batch_acc * q_label_id.size(0)
                     total += q_label_id.size(0)
                 print('Outer Acc on query set:', total_acc / total)
+                #self.results[current_task].append(total_acc / total)
                 del inner_optimizer
             self.classifiers[current_task] = classifier
         
@@ -285,22 +299,24 @@ class Learner(nn.Module):
                 classifier = self.classifiers[current_task] # recall the best PLN trainied on meta-testing inner loop phase
                 classifier.eval()
 
-                total = 0
+                ind_task_acc = []
+                total = 0 
                 total_acc = 0
                 query_dataloader = DataLoader(query, sampler=None, batch_size=16)
                 for i, batch in enumerate(query_dataloader):
                     query_batch = tuple(t.to(self.device) for t in batch)
                     q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels, normalize=False)
-                    total_acc += acc
+                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels,current_task = current_task)
                     total += q_label_id.size(0)
-                    acc = total_acc / tota
-                task_accs.append(acc)
-                print("accuracy on task " + current_task + " after finalizing: " + str(acc))
+                    total_acc += acc * q_label_id.size(0)
+                    ind_avg_acc = total_acc/total
+                all_task_accs.append(ind_avg_acc)
+                print("accuracy on task " + current_task + " after finalizing: " + str(ind_avg_acc))
+                #self.forgetting_result[current_task].append(ind_avg_acc)
                 self.model.to(torch.device('cpu'))
             
             torch.cuda.empty_cache()
             gc.collect()
 
-            return np.mean(task_accs)
+            return all_task_accs

@@ -47,8 +47,7 @@ class Learner(nn.Module):
         """
         """
         super(Learner, self).__init__()
-        
-        #self.outer_batch_size = args.outer_batch_size
+
         self.inner_batch_size = args.inner_batch_size if not args.oml else 1
         self.inner_batch_size_testing = args.inner_batch_size_testing
         self.outer_update_lr = args.outer_update_lr
@@ -60,6 +59,8 @@ class Learner(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = BertModel.from_pretrained(self.bert_model)
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
+        self.scheduler = lr_scheduler.CosineAnnealingLR(optimizer=self.outer_optimizer, T_max=args.epoch,
+                                                    eta_min=args.min_learning_rate)
         self.classifiers = {}
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
         self.results = defaultdict(list)
@@ -215,7 +216,8 @@ class Learner(nn.Module):
             acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
             task_accs.append(acc)
             print('Acc in query set: ', acc)
-
+            
+            self.scheduler.step()
             del inner_optimizer
             torch.cuda.empty_cache()
             gc.collect()
@@ -269,56 +271,41 @@ class Learner(nn.Module):
                 print('----Testing Outer Step-----')
                 self.model.eval()
                 classifier.requires_grad_(False)
-                #query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-                query_dataloader = DataLoader(query, sampler=None, batch_size=self.inner_batch_size_testing)
-                total = 0
-                total_acc = 0
-                for i, batch in enumerate(query_dataloader):
-                    #query_batch = iter(query_dataloader).next()
-                    query_batch = tuple(t.to(self.device) for t in batch)
-                    q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
-                        classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                    batch_acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = num_labels, current_task = current_task)
-                    total_acc += batch_acc * q_label_id.size(0)
-                    total += q_label_id.size(0)
-                print('Outer Acc on query set:', total_acc / total)
-                #self.results[current_task].append(total_acc / total)
+                query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+                query_batch = iter(query_dataloader).next()
+                query_batch = tuple(t.to(self.device) for t in query_batch)
+                _, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                                        classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
+                acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
+                print("accuracy on task " + current_task + " after finalizing: " + str(acc))
                 del inner_optimizer
             self.classifiers[current_task] = classifier
         
         # Test forgetting, none of the bert or classifier should be updated
         with torch.no_grad():
             print('----Testing Forgetting-----')
+            forgetting_task_accs = []
+            self.model.to(self.device)
+            self.model.eval()
             for task_id, task in enumerate(batch_tasks):
                 current_task = idt[task_id]
                 nums_labels = self.modes[current_task]
                 loss_fn = MSELoss() if nums_labels == 1 else CrossEntropyLoss()
                 query = task[1]
-
-                self.model.to(self.device)
-                self.model.eval()
                 classifier = self.classifiers[current_task] # recall the best PLN trainied on meta-testing inner loop phase
                 classifier.eval()
 
-                ind_task_acc = []
-                total = 0 
-                total_acc = 0
-                #query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-                query_dataloader = DataLoader(query, sampler=None, batch_size=self.inner_batch_size_testing)
-                for i, batch in enumerate(query_dataloader):
-                    query_batch = tuple(t.to(self.device) for t in batch)
-                    q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
+                query_batch = iter(query_dataloader).next()
+                query_batch = tuple(t.to(self.device) for t in query_batch)
+                _, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels,current_task = current_task)
-                    total += q_label_id.size(0)
-                    total_acc += acc * q_label_id.size(0)
-                    ind_avg_acc = total_acc/total
-                all_task_accs.append(ind_avg_acc)
-                print("accuracy on task " + current_task + " after finalizing: " + str(ind_avg_acc))
-                #self.forgetting_result[current_task].append(ind_avg_acc)
-                self.model.to(torch.device('cpu'))
+                acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
+                print("accuracy on task " + current_task + " after finalizing: " + str(acc))
+            forgetting_task_accs.append(acc)
+            self.model.to(torch.device('cpu'))
             
             torch.cuda.empty_cache()
             gc.collect()
 
-            return all_task_accs
+            return forgetting_task_accs

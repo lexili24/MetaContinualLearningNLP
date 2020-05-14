@@ -286,9 +286,9 @@ class Learner(nn.Module):
         # Test forgetting, none of the bert or classifier should be updated
         with torch.no_grad():
             print('----Testing Forgetting-----')
-            forgetting_task_accs = []
             self.model.to(self.device)
             self.model.eval()
+            all_task_accs = []
             for task_id, task in enumerate(batch_tasks):
                 current_task = idt[task_id]
                 nums_labels = self.modes[current_task]
@@ -298,17 +298,24 @@ class Learner(nn.Module):
                 classifier.to(self.device)
                 classifier.eval()
 
-                query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))
-                query_batch = iter(query_dataloader).next()
-                query_batch = tuple(t.to(self.device) for t in query_batch)
-                _, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
+                total = 0 
+                total_acc = 0
+                #query_dataloader = DataLoader(query, sampler=None, batch_size=16)
+                query_dataloader = DataLoader(query, sampler=None, batch_size=self.inner_batch_size_testing)
+                for i, batch in enumerate(query_dataloader):
+                    query_batch = tuple(t.to(self.device) for t in batch)
+                    q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                         classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
-                acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
-                print("accuracy on task " + current_task + " after finalizing: " + str(acc))
-            forgetting_task_accs.append(acc)
-            self.model.to(torch.device('cpu'))
-            
+                    acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels = nums_labels,current_task = current_task)
+                    total += q_label_id.size(0)
+                    total_acc += acc * q_label_id.size(0)
+                ind_avg_acc = total_acc/total
+                all_task_accs.append(ind_avg_acc)
+                print("accuracy on task " + current_task + " after finalizing: " + str(ind_avg_acc))
+                self.model.to(torch.device('cpu'))
+    
             torch.cuda.empty_cache()
             gc.collect()
 
-            return forgetting_task_accs
+            return all_task_accs
+

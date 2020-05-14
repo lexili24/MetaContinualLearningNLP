@@ -1,7 +1,7 @@
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import TensorDataset, DataLoader, RandomSampler
-from torch.optim import Adam
+from torch.optim import Adam, lr_scheduler
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers import BertModel, BertPreTrainedModel, glue_tasks_num_labels, superglue_tasks_num_labels
 from copy import deepcopy
@@ -179,6 +179,7 @@ class Learner(nn.Module):
             # inner step of meta-learning: train on classifier (PLN) only
             self.model.to(self.device)
             self.model.eval()
+            classifier.to(self.device)
             classifier.requires_grad_(True)
             current_task = ids[task_id]
             print('----Task', current_task, '----')
@@ -245,6 +246,7 @@ class Learner(nn.Module):
             support_dataloader = DataLoader(support, sampler=RandomSampler(support, replacement=True, num_samples = self.meta_testing_size), batch_size=self.inner_batch_size)
 
             self.model.to(self.device)
+            classifier.to(self.device)
             self.model.train()
             classifier.train()
             print('----Task', idt[task_id], '----')
@@ -293,6 +295,7 @@ class Learner(nn.Module):
                 loss_fn = MSELoss() if nums_labels == 1 else CrossEntropyLoss()
                 query = task[1]
                 classifier = self.classifiers[current_task] # recall the best PLN trainied on meta-testing inner loop phase
+                classifier.to(self.device)
                 classifier.eval()
 
                 query_dataloader = DataLoader(query, sampler=None, batch_size=len(query))

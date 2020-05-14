@@ -26,7 +26,7 @@ def random_seed(value):
     random.seed(value)
 
 
-def (ids, epoch, taskset,  task_list, is_shuffle=True, batch_size=4):
+def create_batch_of_tasks(ids, epoch, taskset,  task_list, is_shuffle=True, batch_size=4):
     idxs = list(range(0, len(taskset)))
     if is_shuffle:
         random.shuffle(idxs)
@@ -125,9 +125,7 @@ def main():
 
     parser.add_argument("--saved_file", default='results.txt', type=str,
         help="indicate location to save file")
-        
-    parser.add_argument('--min_learning_rate', type=float, default=5e-7, 
-                         help='Min Meta learning rate')
+  
 
     args = parser.parse_args()
     
@@ -152,7 +150,7 @@ def main():
     print('start reading test data', flush=True)
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt,
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=True)
-    print('finish reading test data', flush=True))
+    print('finish reading test data', flush=True)
     global_step = 0
     for epoch in range(args.epoch):
         ids = []

@@ -60,6 +60,8 @@ class Learner(nn.Module):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.model = BertModel.from_pretrained(self.bert_model)
         self.outer_optimizer = Adam(self.model.parameters(), lr=self.outer_update_lr)
+        self.scheduler = lr_scheduler.CosineAnnealingLR(optimizer=self.outer_optimizer, T_max=args.epoch,
+                                                        eta_min=args.min_learning_rate)
         self.classifiers = {}
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
         self.results = defaultdict(list)

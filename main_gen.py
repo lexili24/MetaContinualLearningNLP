@@ -76,6 +76,9 @@ def main():
     
     parser.add_argument("--outer_update_lr", default=5e-5, type=float,
                         help="Meta learning rate")
+    
+    parser.add_argument('--min_learning_rate', type=float, default=5e-7, 
+                        help='Min Meta learning rate')
 
     parser.add_argument("--inner_update_lr", default=5e-5, type=float,
                         help="Inner update learning rate")

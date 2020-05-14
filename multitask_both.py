@@ -48,8 +48,9 @@ class Learner(nn.Module):
         """
         super(Learner, self).__init__()
         
-        self.outer_batch_size = args.outer_batch_size
+        #self.outer_batch_size = args.outer_batch_size
         self.inner_batch_size = args.inner_batch_size if not args.oml else 1
+        self.inner_batch_size_testing = args.inner_batch_size_testing
         self.outer_update_lr = args.outer_update_lr
         self.inner_update_lr = args.inner_update_lr
         self.inner_update_step = args.inner_update_step if not args.oml else 1
@@ -268,8 +269,8 @@ class Learner(nn.Module):
                 print('----Testing Outer Step-----')
                 self.model.eval()
                 classifier.requires_grad_(False)
-                query_dataloader = DataLoader(query, sampler=None, batch_size=16)
-    
+                #query_dataloader = DataLoader(query, sampler=None, batch_size=16)
+                query_dataloader = DataLoader(query, sampler=None, batch_size=self.inner_batch_size_testing)
                 total = 0
                 total_acc = 0
                 for i, batch in enumerate(query_dataloader):
@@ -302,7 +303,8 @@ class Learner(nn.Module):
                 ind_task_acc = []
                 total = 0 
                 total_acc = 0
-                query_dataloader = DataLoader(query, sampler=None, batch_size=16)
+                #query_dataloader = DataLoader(query, sampler=None, batch_size=16)
+                query_dataloader = DataLoader(query, sampler=None, batch_size=self.inner_batch_size_testing)
                 for i, batch in enumerate(query_dataloader):
                     query_batch = tuple(t.to(self.device) for t in batch)
                     q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 

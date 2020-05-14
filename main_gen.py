@@ -68,9 +68,12 @@ def main():
     parser.add_argument("--outer_batch_size", default=4, type=int,
                         help="Batch of task size")
 
-    parser.add_argument("--inner_batch_size", default=12, type=int,
-                        help="Training batch size in inner iteration")
-
+    parser.add_argument("--inner_batch_size", default=16, type=int,
+                        help="Training batch size in inner iteration for meta-training")
+    
+    parser.add_argument("--inner_batch_size_testing", default=16, type=int,
+                        help="Training batch size in inner iteration for meta-testing")
+    
     parser.add_argument("--outer_update_lr", default=5e-5, type=float,
                         help="Meta learning rate")
 
@@ -112,7 +115,7 @@ def main():
     parser.add_argument("--testing_tasks", default=['cola', 'mrpc', 'sts-b', 'rte'], type=list,
                         help="Define meta-testing tasks list.")
 
-    parser.add_argument("--evaluate_whole_set", default=True, type=bool,
+    parser.add_argument("--evaluate_whole_set", default=False, type=bool,
                         help="Indicator on whether evaluate entire dev set during meta-testing phase")
 
     parser.add_argument("--meta_testing_size", default=100, type=int,
@@ -134,7 +137,10 @@ def main():
     else:
         print('='*35, 'Training MAML', '='*35)
     print('meta training tasks', args.training_tasks)
-    print('meta testing tasks', args.testing_tasks)
+    if args.evaluate_whole_set == True: 
+        print('meta testing tasks taking entire training data')
+    else:
+        print('meta testing tasks', args.testing_tasks)
     meta_testing_outer = defaultdict(list)
     forgetting_result = defaultdict(list)
 
@@ -145,7 +151,6 @@ def main():
     test = MetaTask(args=args, num_task=args.num_task_test, k_support=args.k_spt,
                     k_query=args.k_qry, tokenizer=tokenizer, max_seq_length=args.max_seq_length, evaluate=True)
     print('finish reading test data', flush=True)
-    print('meta testing training samples', args.meta_testing_size)
     global_step = 0
     for epoch in range(args.epoch):
         ids = []
@@ -165,7 +170,8 @@ def main():
             random_seed(123)
             print("\n-----------------Meta-Testing Mode-----------------\n")
             idt = []
-            db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=3, task_list = args.testing_tasks)
+            db_test = create_test_tasks(idt, epoch, test, is_shuffle=False, batch_size=args.num_task_test, task_list = args.testing_tasks)
+            # print(idt)
             test_batch = next(db_test)
             acc = learner.finetune(idt, test_batch)
             for i, result in enumerate(acc):

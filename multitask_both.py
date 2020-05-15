@@ -237,8 +237,6 @@ class Learner(nn.Module):
             for i in range(0,len(oml_gradient)):
                 oml_gradient[i] = oml_gradient[i] / float(num_task)
             for i, params in enumerate(self.model.parameters()):
-                print(params.type())
-                print(oml_gradient[i].type())
                 params.grad = oml_gradient[i]
             self.outer_optimizer.step()
             self.scheduler.step()
@@ -318,6 +316,7 @@ class Learner(nn.Module):
                 query = task[1]
                 classifier = self.classifiers[current_task] # recall the best PLN trainied on meta-testing inner loop phase
                 classifier.to(self.device)
+                self.model.to(self.device)
                 classifier.eval()
 
                 total = 0 
@@ -334,10 +333,9 @@ class Learner(nn.Module):
                 ind_avg_acc = total_acc/total
                 all_task_accs.append(ind_avg_acc)
                 print("accuracy on task " + current_task + " after finalizing: " + str(ind_avg_acc))
-                self.model.to(torch.device('cpu'))
     
             torch.cuda.empty_cache()
             gc.collect()
-
+            self.model.to(torch.device('cpu'))
             return all_task_accs
 

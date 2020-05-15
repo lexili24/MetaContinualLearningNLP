@@ -164,7 +164,8 @@ class Learner(nn.Module):
         # support = query = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids) for glue tasks, others please check speficially in `task_all.py`
         """
         task_accs = []
-        oml_loss = []
+        oml_gradient = []
+        meta_weights = list(self.model.parameters())
         num_task = len(batch_tasks)
         print(ids)
         for task_id, task in enumerate(batch_tasks):
@@ -218,7 +219,14 @@ class Learner(nn.Module):
                 self.outer_optimizer.step()
                 self.scheduler.step()
             else:
-                oml_loss.append(q_loss)
+                q_loss.backward()
+                update_grad = [x.grad.data for x in self.model.parameters()]
+                for i, update_grad in enumerate(update_grad):
+                    if task_id == 0:
+                        oml_gradient.append(update_grad)
+                    else:
+                        oml_gradient[i] += update_grad
+            
             acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
             task_accs.append(acc)
             print('Acc in query set: ', acc)
@@ -227,8 +235,10 @@ class Learner(nn.Module):
             self.model.to(torch.device('cpu'))
         
         if self.oml:
-            oml_loss = torch.mean(torch.stack(oml_loss))
-            oml_loss.backward()
+            for i in range(0,len(oml_gradient)):
+                oml_gradient[i] = oml_gradient[i] / float(num_task)
+            for i, params in enumerate(self.model.parameters()):
+                params.grad = oml_gradient[i]
             self.outer_optimizer.step()
             self.scheduler.step()
         

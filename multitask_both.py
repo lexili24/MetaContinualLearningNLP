@@ -65,7 +65,7 @@ class Learner(nn.Module):
         self.modes = {**glue_tasks_num_labels, **superglue_tasks_num_labels}
         self.results = defaultdict(list)
         self.forgetting_result = defaultdict(list)
-
+        self.oml = args.oml
     def init_weights(self, m):
         '''
         A simple function that randomly initiliazed all linear/bilinear layers in xavier distribution. 
@@ -212,7 +212,7 @@ class Learner(nn.Module):
             q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                     classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
             # backward step
-            if not args.oml:
+            if not self.oml:
                 self.outer_optimizer.zero_grad()
                 q_loss.backward()
                 self.outer_optimizer.step()
@@ -226,7 +226,7 @@ class Learner(nn.Module):
             del inner_optimizer
             self.model.to(torch.device('cpu'))
         
-        if args.oml:
+        if self.oml:
             oml_loss = torch.mean(torch.stack(oml_loss))
             oml_loss.backward()
             self.outer_optimizer.step()

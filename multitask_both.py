@@ -164,6 +164,7 @@ class Learner(nn.Module):
         # support = query = TensorDataset(all_input_ids, all_attention_mask, all_segment_ids, all_label_ids) for glue tasks, others please check speficially in `task_all.py`
         """
         task_accs = []
+        oml_loss = []
         num_task = len(batch_tasks)
         print(ids)
         for task_id, task in enumerate(batch_tasks):
@@ -211,19 +212,28 @@ class Learner(nn.Module):
             q_loss, q_output_logits, q_label_id = self.get_loss(batch=query_batch, base_model=self.model, 
                                     classifier=classifier, current_task=current_task, loss_fn = loss_fn, return_acc = True)
             # backward step
-            self.outer_optimizer.zero_grad()
-            q_loss.backward()
-            self.outer_optimizer.step()
+            if not args.oml:
+                self.outer_optimizer.zero_grad()
+                q_loss.backward()
+                self.outer_optimizer.step()
+                self.scheduler.step()
+            else:
+                oml_loss.append(q_loss)
             acc = self.get_acc(probs=q_output_logits, labels=q_label_id, num_labels=num_labels, current_task = current_task)
             task_accs.append(acc)
             print('Acc in query set: ', acc)
             
-            self.scheduler.step()
             del inner_optimizer
-            torch.cuda.empty_cache()
-            gc.collect()
             self.model.to(torch.device('cpu'))
-
+        
+        if args.oml:
+            oml_loss = torch.mean(torch.stack(oml_loss))
+            oml_loss.backward()
+            self.outer_optimizer.step()
+            self.scheduler.step()
+        
+        gc.collect()
+        torch.cuda.empty_cache()
         return np.mean(task_accs)
 
     def finetune(self, idt, batch_tasks):
